@@ -75,12 +75,28 @@ public class jNetworkInterface {
 
    /**
     * Check the connection status of the network connection.
-    * @return
+    * @return Connection status
     */
    public boolean isConnected() {
       if (socket == null)
          return false;
       else
          return (!socket.isClosed() && isConnected);
+   }
+
+   /**
+    * Determine the connection quality.
+    */
+   public void pollQuality() {
+
+   }
+
+   /**
+    * Return the connection quality. 1 - 100 where
+    * 1 is the worst possible connection.
+    * @return 1 - 100 integer value representing quality
+    */
+   public int getConnectionQuality() {
+      return quality;
    }
 }
