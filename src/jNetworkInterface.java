@@ -25,6 +25,9 @@ import javax.net.ssl.*;
  * can be used to send data and objects over network
  * connections, or establish network connections
  * for speed and reliability testing.
+ *
+ * see jNetworkInterfaceServer for a serverobject that
+ * can communicate properly with this class.
  */
 public class jNetworkInterface {
    /**
@@ -75,7 +78,7 @@ public class jNetworkInterface {
       this.port = port;
       this.ssl = ssl;
       this.isConnected = false;
-      this.quality = 0;
+      this.quality = -1;
    }
 
    /**
@@ -124,7 +127,7 @@ public class jNetworkInterface {
     * @param data Data to send
     * @return Server response
     */
-   public String sendUTF8String(String command, String data) {
+   public String sendUTF8Command(String command, String data) {
       String response = "";
       try {
          DataOutputStream socketOut = new DataOutputStream(
@@ -133,6 +136,32 @@ public class jNetworkInterface {
                  new InputStreamReader(socket.getInputStream()));
          socketOut.writeUTF(command);
          socketOut.writeUTF(data);
+         // Get the response from the server
+         String socketResponse;
+         while ((socketResponse = socketIn.readLine()) != null)
+            response += socketResponse;
+         // Return the received data from the server
+         return response;
+      } catch (IOException ex) {
+         return null;
+      }
+   }
+
+   /**
+    * Send an object to the server using a command.
+    * @param command Command
+    * @param obj Object to send
+    * @return Response from server
+    */
+   public String sendObject(String command, Object obj) {
+      String response = "";
+      try {
+         ObjectOutputStream socketOut = new ObjectOutputStream(
+                 socket.getOutputStream());
+         BufferedReader socketIn = new BufferedReader(
+                 new InputStreamReader(socket.getInputStream()));
+         socketOut.writeUTF(command);
+         socketOut.writeObject(obj);
          // Get the response from the server
          String socketResponse;
          while ((socketResponse = socketIn.readLine()) != null)
@@ -168,7 +197,7 @@ public class jNetworkInterface {
          try {
             responseTime = Long.parseLong(socketIn.readLine());
          } catch (NumberFormatException ex) {
-            quality = 0;
+            quality = -1;
             return;
          }
          // Calculate the difference between t
@@ -200,7 +229,7 @@ public class jNetworkInterface {
             quality = 1;
          // @todo check other factors that affect quality such as the local connection
       } catch (IOException ex) {
-         quality = 1;
+         quality = -1;
       }
    }
 
@@ -211,5 +240,32 @@ public class jNetworkInterface {
     */
    public int getConnectionQuality() {
       return quality;
+   }
+
+   /**
+    * Close the socket connection.
+    */
+   public void closeConnection() {
+      try {
+         socket.close();
+      } catch (IOException ex) {
+         // Do nothing. We were already closed.
+      }
+      isConnected = false;
+      quality = -1;
+   }
+
+   /**
+    * Check if an object is serializable.
+    * @param obj Object to check
+    * @return Result
+    */
+   private boolean isSerializable(Object obj) {
+      try {
+         new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(obj);
+         return true;
+      } catch (Exception ex) {
+         return false;
+      }
    }
 }
