@@ -80,8 +80,9 @@ public class jNetworkInterfaceServer implements Runnable {
     * Perform a command sent to the server.
     * @param s Socket connection
     */
-   private jNetworkInterfaceServer(Socket s) {
+   private jNetworkInterfaceServer(Socket s, String serverName) {
       receivedSocket = s;
+      this.serverName = serverName;
    }
 
    @Override
@@ -163,7 +164,7 @@ public class jNetworkInterfaceServer implements Runnable {
       while (!isStopped) {
          try {
             Socket socket = server.accept();
-            new Thread(new jNetworkInterfaceServer(socket)).start();
+            new Thread(new jNetworkInterfaceServer(socket, serverName)).start();
          } catch (IOException ex) {
             System.out.println("Could not start jNetworkInterfaceServer.");
          }
