@@ -75,6 +75,7 @@ public class jNetworkInterface {
       this.port = port;
       this.ssl = ssl;
       this.isConnected = false;
+      this.quality = 0;
    }
 
    /**
@@ -90,6 +91,7 @@ public class jNetworkInterface {
             socket = new Socket(hostname, port);
          isConnected = true;
       } catch (IOException ex) {
+         // We couldn't create a connection.
          isConnected = false;
       }
    }
@@ -117,6 +119,32 @@ public class jNetworkInterface {
    }
 
    /**
+    * Send a command with data to the server and return the response.
+    * @param command Command to send
+    * @param data Data to send
+    * @return Server response
+    */
+   public String sendUTF8String(String command, String data) {
+      String response = "";
+      try {
+         DataOutputStream socketOut = new DataOutputStream(
+                 socket.getOutputStream());
+         BufferedReader socketIn = new BufferedReader(
+                 new InputStreamReader(socket.getInputStream()));
+         socketOut.writeUTF(command);
+         socketOut.writeUTF(data);
+         // Get the response from the server
+         String socketResponse;
+         while ((socketResponse = socketIn.readLine()) != null)
+            response += socketResponse;
+         // Return the received data from the server
+         return response;
+      } catch (IOException ex) {
+         return null;
+      }
+   }
+
+   /**
     * Determine the connection quality.
     */
    public void pollQuality() {
@@ -133,7 +161,7 @@ public class jNetworkInterface {
          // Get the current system time for comparison with the server
          long responseTimeStart = System.currentTimeMillis();
          socketOut.writeLong(responseTimeStart);
-         // Get the response message and parse it0
+         // Get the response message and parse it
          long responseTime;
          // Check if the ping command is accepted. If it is not
          // we cannot determine the connection quality. No soup for you.
