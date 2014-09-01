@@ -1,16 +1,25 @@
 /**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ The MIT License (MIT)
+
+ Copyright (c) 2014 Jacob Gorney
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
  */
 
 import java.io.*;
@@ -26,7 +35,7 @@ import javax.net.ssl.*;
  * connections, or establish network connections
  * for speed and reliability testing.
  *
- * see jNetworkInterfaceServer for a serverobject that
+ * see jNetworkInterfaceServer for a server object that
  * can communicate properly with this class.
  */
 public class jNetworkInterface {
@@ -69,6 +78,12 @@ public class jNetworkInterface {
    private Socket socket;
 
    /**
+    * Test address for internet connection test. This is the IP Address
+    * for google.com. Using IP address doesn't require DNS lookup.
+    */
+   private static final String TEST_ADDR = "74.125.225.36";
+
+   /**
     * Class constructor to establish the connection.
     * @param hostname Hostname of the connection
     * @param port Port number of the connection
@@ -100,12 +115,35 @@ public class jNetworkInterface {
    }
 
    /**
+    * Checks if an internet connection exists. May want to call this in a thread.
+    * @return Connection status
+    */
+   public boolean isOnline() {
+      try {
+         URL testURL = new URL(this.TEST_ADDR);
+         HttpURLConnection conn = (HttpURLConnection) testURL.openConnection();
+         conn.getContent();
+      } catch (MalformedURLException ex) {
+         System.out.println("ERROR: Test address failed.");
+         return false;
+      } catch (IOException ex) {
+         System.out.println("Error: Test address failed.");
+         return false;
+      }
+      return true;
+   }
+
+   /**
     * Get the raw socket.
     * @return Socket connection. Null if not available.
     */
    public Socket getConnection() {
+      // Also determines if the socket is SSL and returns the appropriate object.
       if (socket != null && isConnected())
-         return socket;
+         if (ssl)
+            return (SSLSocket)socket;
+         else
+            return socket;
       else
          return null;
    }
@@ -143,6 +181,7 @@ public class jNetworkInterface {
          // Return the received data from the server
          return response;
       } catch (IOException ex) {
+         System.out.println("UTF8 Command failed to send.");
          return null;
       }
    }
@@ -153,7 +192,7 @@ public class jNetworkInterface {
     * @param obj Object to send
     * @return Response from server
     */
-   public String sendObject(String command, Object obj) {
+   public String sendObjectCommand(String command, Object obj) {
       String response = "";
       try {
          ObjectOutputStream socketOut = new ObjectOutputStream(
@@ -169,6 +208,7 @@ public class jNetworkInterface {
          // Return the received data from the server
          return response;
       } catch (IOException ex) {
+         System.out.println("Object Command failed to send.");
          return null;
       }
    }
