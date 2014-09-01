@@ -174,6 +174,8 @@ public class jNetworkInterface {
                  new InputStreamReader(socket.getInputStream()));
          socketOut.writeUTF(command);
          socketOut.writeUTF(data);
+         socketOut.flush();
+         socketOut.close();
          // Get the response from the server
          String socketResponse;
          while ((socketResponse = socketIn.readLine()) != null)
@@ -201,6 +203,8 @@ public class jNetworkInterface {
                  new InputStreamReader(socket.getInputStream()));
          socketOut.writeUTF(command);
          socketOut.writeObject(obj);
+         socketOut.flush();
+         socketOut.close();
          // Get the response from the server
          String socketResponse;
          while ((socketResponse = socketIn.readLine()) != null)
@@ -227,9 +231,10 @@ public class jNetworkInterface {
          // Send the ping message with the current time in miliseconds.
          // The response will then be compared.
          socketOut.writeUTF("ping");
+         socketOut.flush();
+         socketOut.close();
          // Get the current system time for comparison with the server
          long responseTimeStart = System.currentTimeMillis();
-         socketOut.writeLong(responseTimeStart);
          // Get the response message and parse it
          long responseTime;
          // Check if the ping command is accepted. If it is not

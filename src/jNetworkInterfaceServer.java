@@ -152,7 +152,7 @@ public class jNetworkInterfaceServer implements Runnable {
     * Ping the server and return the current server MS system time.
     * @return System time in MS
     */
-   public long ping() {
+   protected long ping() {
       return System.currentTimeMillis();
    }
 
@@ -179,10 +179,12 @@ public class jNetworkInterfaceServer implements Runnable {
       try {
          // Get the data input stream, parse the command, and send the output back.
          DataInputStream socketIn = new DataInputStream(s.getInputStream());
-         String data = socketIn.readUTF();
-         if (data.isEmpty())
+         String command = socketIn.readUTF();
+         if (command.isEmpty())
             return RESPONSE_EMPTY;
          // Parse the command
+         // There are two parts to every command. The command itself and the data.
+         String data = socketIn.readUTF();
          // @todo parse the command
          return null;
       } catch (IOException ex) {
