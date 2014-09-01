@@ -290,6 +290,7 @@ public class jNetworkInterface {
          socket.close();
       } catch (IOException ex) {
          // Do nothing. We were already closed.
+         System.out.println("Connection already closed.");
       }
       isConnected = false;
       quality = -1;
