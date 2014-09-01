@@ -15,6 +15,7 @@
 
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.*;
 
 /**
  * @author Jacob Gorney
@@ -81,7 +82,12 @@ public class jNetworkInterface {
     */
    public void connect() {
       try {
-         socket = new Socket(hostname, port);
+         if (ssl) {
+            // Build an SSL connection instead of a normal socket connection
+            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
+         } else
+            socket = new Socket(hostname, port);
          isConnected = true;
       } catch (IOException ex) {
          isConnected = false;
@@ -124,9 +130,10 @@ public class jNetworkInterface {
          // Send the ping message with the current time in miliseconds.
          // The response will then be compared.
          socketOut.writeUTF("ping");
+         // Get the current system time for comparison with the server
          long responseTimeStart = System.currentTimeMillis();
          socketOut.writeLong(responseTimeStart);
-         // Get the response message and parse it
+         // Get the response message and parse it0
          long responseTime;
          // Check if the ping command is accepted. If it is not
          // we cannot determine the connection quality. No soup for you.
@@ -136,9 +143,11 @@ public class jNetworkInterface {
             quality = 0;
             return;
          }
+         // Calculate the difference between t
          long difference = responseTime - responseTimeStart;
          // Determine the connection quality based on the difference
          // of the two timestamps.
+         // @todo this can be improved to become more precise.
          if (difference < 1)
             quality = 100;
          else if (difference > 1 && difference < 5)
@@ -160,9 +169,10 @@ public class jNetworkInterface {
          else if (difference > 5000 && difference < 10000)
             quality = 10;
          else
-            quality = 0;
+            quality = 1;
+         // @todo check other factors that affect quality such as the local connection
       } catch (IOException ex) {
-         quality = 0;
+         quality = 1;
       }
    }
 
