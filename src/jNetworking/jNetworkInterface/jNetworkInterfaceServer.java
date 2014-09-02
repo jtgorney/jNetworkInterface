@@ -27,6 +27,7 @@ package jNetworking.jNetworkInterface;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 
 /**
  * @author Jacob Gorney
@@ -76,6 +77,15 @@ public class jNetworkInterfaceServer implements Runnable {
     */
    private String serverName;
    /**
+    * Start time of the server.
+    */
+   private Date serverStarted;
+   /**
+    * Count of the total requests sent to the server.
+    */
+   private int requests;
+
+   /**
     * Class constructor to create a threaded server object.
     * @param port Port to run the server on
     * @param ssl SSL
@@ -90,8 +100,11 @@ public class jNetworkInterfaceServer implements Runnable {
    @Override
    public void run() {
       buildSocket();
+      // Set some stat tracking
       synchronized (this) {
          isStopped = false;
+         serverStarted = new Date();
+         requests = 0;
       }
       // The main loop to listen for connections
       while (!isStopped()) {
@@ -105,6 +118,9 @@ public class jNetworkInterfaceServer implements Runnable {
             if (!isPaused()) {
                Socket client = server.accept();
                System.out.println("Received request from client. Attempting to process.");
+               synchronized (this) {
+                  requests++;
+               }
                new Thread(new jNetworkInterfaceServerTask(client)).start();
             }
          } catch (IOException ex) {
@@ -114,10 +130,28 @@ public class jNetworkInterfaceServer implements Runnable {
    }
 
    /**
+    * Get the total amount of requests.
+    * @return Request count
+    */
+   public synchronized int getRequests() {
+      return requests;
+   }
+
+   /**
+    * Get the start time of the server.
+    * @return Date of start
+    */
+   public synchronized Date getStartTime() {
+      return serverStarted;
+   }
+
+   /**
     * Stop the server.
     */
    public synchronized void stop() {
-     isStopped = true;
+      isStopped = true;
+      serverStarted = null;
+      requests = 0;
       System.out.println("jNetworkInterfaceServer stopped.");
    }
 
