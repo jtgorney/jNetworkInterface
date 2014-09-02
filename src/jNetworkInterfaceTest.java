@@ -52,9 +52,16 @@ public class jNetworkInterfaceTest {
          if (cliText.equals("exit"))
             break;
          // Send the command
-         String response = client.sendUTF8Command(cliText, null);
-         System.out.println();
-         System.out.println(response);
+         String response = "";
+         try {
+            response = client.sendUTF8Command(cliText, null);
+         } catch (RuntimeException ex) {
+            System.out.println("The server is not accepting connections or has not been started.");
+         }
+         if (!response.isEmpty()) {
+            System.out.println();
+            System.out.println(response);
+         }
          System.out.println();
       }
    }
