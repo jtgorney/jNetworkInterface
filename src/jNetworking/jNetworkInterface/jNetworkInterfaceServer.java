@@ -36,6 +36,18 @@ import java.net.Socket;
  */
 public class jNetworkInterfaceServer implements Runnable {
    /**
+    * Major version number.
+    */
+   public static final int VERSION_MAJOR = 1;
+   /**
+    * Minor version number.
+    */
+   public static final int VERSION_MINOR = 0;
+   /**
+    * Revision version number.
+    */
+   public static final int VERSION_REVISION = 0;
+   /**
     * Empty response code.
     */
    public static final String RESPONSE_EMPTY = "EMPTY";
@@ -59,10 +71,6 @@ public class jNetworkInterfaceServer implements Runnable {
     * Main server listening socket.
     */
    private ServerSocket server;
-   /**
-    * Socket of received request.
-    */
-   private Socket receivedSocket;
    /**
     * jNetworkInterfaceServer name.
     */
@@ -127,6 +135,14 @@ public class jNetworkInterfaceServer implements Runnable {
     */
    public synchronized void setServerName(String name) {
       serverName = name;
+   }
+
+   /**
+    * Get the name of the server.
+    * @return Server name
+    */
+   public synchronized String getServerName() {
+      return serverName;
    }
 
    /**

@@ -28,7 +28,18 @@ package jNetworking.jNetworkInterface;
  * Execute a command sent to the server.
  */
 public class jNetworkInterfaceServerCommand {
-
+   /**
+    * Error response code.
+    */
+   public static final String RESPONSE_ERROR = "ERROR";
+   /**
+    * Empty response code.
+    */
+   public static final String RESPONSE_EMPTY = "EMPTY";
+   /**
+    * Invalid command response code.
+    */
+   public static final String RESPONSE_INVALID = "INVALID";
    /**
     * Execute a command.
     * @todo Accept an ArrayList for data.
@@ -44,7 +55,7 @@ public class jNetworkInterfaceServerCommand {
          case "check":
             return check();
          default:
-            return "ERROR";
+            return RESPONSE_INVALID;
       }
    }
 
@@ -53,7 +64,9 @@ public class jNetworkInterfaceServerCommand {
     * @return Server version
     */
    public static String version() {
-      return "jNetworkInterfaceServer 1.0.0";
+      return "jNetworkInterfaceServer " + + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+              jNetworkInterfaceServer.VERSION_MINOR + "." +
+              jNetworkInterfaceServer.VERSION_REVISION;
    }
 
    /**
@@ -69,6 +82,8 @@ public class jNetworkInterfaceServerCommand {
     * @return String status
     */
    public static String check() {
-      return "jNetworkInterfaceServer 1.0.0: OK";
+      return "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+              jNetworkInterfaceServer.VERSION_MINOR + "." +
+              jNetworkInterfaceServer.VERSION_REVISION + ": OK";
    }
 }
