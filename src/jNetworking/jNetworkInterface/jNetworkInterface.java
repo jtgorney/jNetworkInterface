@@ -22,20 +22,26 @@
  THE SOFTWARE.
  */
 
+package jNetworking.jNetworkInterface;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
-import java.net.*;
-import javax.net.ssl.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
 
 /**
  * @author Jacob Gorney
  * @version 1.0.0
  *
- * jNetworkInterface is a multi-use object that
+ * jNetworking.jNetworkInterface.jNetworkInterface is a multi-use object that
  * can be used to send data and objects over network
  * connections, or establish network connections
  * for speed and reliability testing.
  *
- * see jNetworkInterfaceServer for a server object that
+ * see jNetworking.jNetworkInterface.jNetworkInterfaceServer for a server object that
  * can communicate properly with this class.
  */
 public class jNetworkInterface {
@@ -97,24 +103,6 @@ public class jNetworkInterface {
    }
 
    /**
-    * Establish and create the socket connection.
-    */
-   public void connect() {
-      try {
-         if (ssl) {
-            // Build an SSL connection instead of a normal socket connection
-            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
-         } else
-            socket = new Socket(hostname, port);
-         isConnected = true;
-      } catch (IOException ex) {
-         // We couldn't create a connection.
-         isConnected = false;
-      }
-   }
-
-   /**
     * Checks if an internet connection exists. May want to call this in a thread.
     * @return Connection status
     */
@@ -124,28 +112,11 @@ public class jNetworkInterface {
          HttpURLConnection conn = (HttpURLConnection) testURL.openConnection();
          conn.getContent();
       } catch (MalformedURLException ex) {
-         System.out.println("ERROR: Test address failed.");
-         return false;
+         throw new RuntimeException("Malformed host for online test.");
       } catch (IOException ex) {
-         System.out.println("Error: Test address failed.");
          return false;
       }
       return true;
-   }
-
-   /**
-    * Get the raw socket.
-    * @return Socket connection. Null if not available.
-    */
-   public Socket getConnection() {
-      // Also determines if the socket is SSL and returns the appropriate object.
-      if (socket != null && isConnected())
-         if (ssl)
-            return (SSLSocket)socket;
-         else
-            return socket;
-      else
-         return null;
    }
 
    /**
@@ -166,55 +137,29 @@ public class jNetworkInterface {
     * @return Server response
     */
    public String sendUTF8Command(String command, String data) {
-      String response = "";
-      try {
-         DataOutputStream socketOut = new DataOutputStream(
-                 socket.getOutputStream());
-         BufferedReader socketIn = new BufferedReader(
-                 new InputStreamReader(socket.getInputStream()));
-         socketOut.writeUTF(command);
-         socketOut.writeUTF(data);
-         socketOut.flush();
-         socketOut.close();
-         // Get the response from the server
-         String socketResponse;
-         while ((socketResponse = socketIn.readLine()) != null)
-            response += socketResponse;
-         // Return the received data from the server
-         return response;
-      } catch (IOException ex) {
-         System.out.println("UTF8 Command failed to send.");
+      connect();
+      if (isConnected) {
+         try {
+            // Send the command
+            DataOutputStream socketOut = new DataOutputStream(socket.getOutputStream());
+            //socketOut.writeUTF(command + System.getProperty("line.separator") + data);
+            // @todo change to accept data
+            socketOut.writeUTF(command);
+            System.out.println("Send UTF8 command '" + command + "'");
+            // Get the response from the server
+            DataInputStream socketIn = new DataInputStream(socket.getInputStream());
+            String response = socketIn.readUTF();
+            // Close the connections
+            socketOut.close();
+            socketIn.close();
+            closeConnection();
+            // Return the response
+            return response;
+         } catch (IOException ex) {
+            throw new RuntimeException("Failed to send UTF8 command.");
+         }
+      } else
          return null;
-      }
-   }
-
-   /**
-    * Send an object to the server using a command.
-    * @param command Command
-    * @param obj Object to send
-    * @return Response from server
-    */
-   public String sendObjectCommand(String command, Object obj) {
-      String response = "";
-      try {
-         ObjectOutputStream socketOut = new ObjectOutputStream(
-                 socket.getOutputStream());
-         BufferedReader socketIn = new BufferedReader(
-                 new InputStreamReader(socket.getInputStream()));
-         socketOut.writeUTF(command);
-         socketOut.writeObject(obj);
-         socketOut.flush();
-         socketOut.close();
-         // Get the response from the server
-         String socketResponse;
-         while ((socketResponse = socketIn.readLine()) != null)
-            response += socketResponse;
-         // Return the received data from the server
-         return response;
-      } catch (IOException ex) {
-         System.out.println("Object Command failed to send.");
-         return null;
-      }
    }
 
    /**
@@ -224,29 +169,17 @@ public class jNetworkInterface {
       // First the server must support the operation
       // we are going to send to it. The "poll" command.
       try {
-         DataOutputStream socketOut = new DataOutputStream(
-                 socket.getOutputStream());
-         BufferedReader socketIn = new BufferedReader(
-                 new InputStreamReader(socket.getInputStream()));
-         // Send the ping message with the current time in miliseconds.
-         // The response will then be compared.
-         socketOut.writeUTF("ping");
-         socketOut.flush();
-         socketOut.close();
-         // Get the current system time for comparison with the server
-         long responseTimeStart = System.currentTimeMillis();
-         // Get the response message and parse it
-         long responseTime;
-         // Check if the ping command is accepted. If it is not
-         // we cannot determine the connection quality. No soup for you.
+         long responseStart = System.currentTimeMillis();
+         // If this parse fails, the server doesn't support ping. No soup for you.
+         long responseEnd;
          try {
-            responseTime = Long.parseLong(socketIn.readLine());
+            responseEnd = Long.parseLong(sendUTF8Command("ping", null));
          } catch (NumberFormatException ex) {
             quality = -1;
             return;
          }
          // Calculate the difference between t
-         long difference = responseTime - responseTimeStart;
+         long difference = responseEnd - responseStart;
          // Determine the connection quality based on the difference
          // of the two timestamps.
          // @todo this can be improved to become more precise.
@@ -273,7 +206,7 @@ public class jNetworkInterface {
          else
             quality = 1;
          // @todo check other factors that affect quality such as the local connection
-      } catch (IOException ex) {
+      } catch (RuntimeException ex) {
          quality = -1;
       }
    }
@@ -294,11 +227,28 @@ public class jNetworkInterface {
       try {
          socket.close();
       } catch (IOException ex) {
-         // Do nothing. We were already closed.
-         System.out.println("Connection already closed.");
+         throw new RuntimeException("Connection already closed.");
       }
       isConnected = false;
       quality = -1;
+   }
+
+   /**
+    * Establish and create the socket connection.
+    */
+   private void connect() {
+      try {
+         if (ssl) {
+            // Build an SSL connection instead of a normal socket connection
+            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
+         } else
+            socket = new Socket(hostname, port);
+         isConnected = true;
+      } catch (IOException ex) {
+         isConnected = false;
+         throw new RuntimeException("Connection could not be created.");
+      }
    }
 
    /**

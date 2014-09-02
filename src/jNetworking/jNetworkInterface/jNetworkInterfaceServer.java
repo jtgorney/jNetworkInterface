@@ -22,8 +22,11 @@
  THE SOFTWARE.
  */
 
-import java.io.*;
-import java.net.*;
+package jNetworking.jNetworkInterface;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * @author Jacob Gorney
@@ -76,38 +79,29 @@ public class jNetworkInterfaceServer implements Runnable {
       this.serverName = "jNetworkInterfaceServer 1.0.0";
    }
 
-   /**
-    * Perform a command sent to the server.
-    * @param s Socket connection
-    */
-   private jNetworkInterfaceServer(Socket s, String serverName) {
-      receivedSocket = s;
-      this.serverName = serverName;
-   }
-
    @Override
    public void run() {
-      // Only accept a command if we are not paused.
-      if (!isPaused())
-         performCommand(receivedSocket);
-   }
-
-   /**
-    * Start the server.
-    */
-   public synchronized void start() {
-      // Determine if we are already running first.
-      if (!isStopped()) {
-         System.out.println("jNetworkInterfaceServer already running.");
-         return;
-      }
-      try {
-         // Initialize server execution
-         server = new ServerSocket(port);
+      buildSocket();
+      synchronized (this) {
          isStopped = false;
-         beginThreading();
-      } catch (IOException ex) {
-         isStopped = true;
+      }
+      // The main loop to listen for connections
+      while (!isStopped()) {
+         // Check for stop
+         if (isStopped()) {
+            System.out.println("Server stopped.");
+            return;
+         }
+         try {
+            // Only run if not paused
+            if (!isPaused()) {
+               Socket client = server.accept();
+               System.out.println("Received request from client. Attempting to process.");
+               new Thread(new jNetworkInterfaceServerTask(client)).start();
+            }
+         } catch (IOException ex) {
+            throw new RuntimeException("Could not process request sent from client connection.");
+         }
       }
    }
 
@@ -115,7 +109,8 @@ public class jNetworkInterfaceServer implements Runnable {
     * Stop the server.
     */
    public synchronized void stop() {
-      isStopped = true;
+     isStopped = true;
+      System.out.println("jNetworkInterfaceServer stopped.");
    }
 
    /**
@@ -123,6 +118,7 @@ public class jNetworkInterfaceServer implements Runnable {
     */
    public synchronized void pause() {
       isPaused = true;
+      System.out.println("jNetworkInterfaceServer paused.");
    }
 
    /**
@@ -143,7 +139,7 @@ public class jNetworkInterfaceServer implements Runnable {
 
    /**
     * Determine if server is paused.
-    * @return
+    * @return Pause status
     */
    public synchronized boolean isPaused() {
       return isPaused;
@@ -158,38 +154,13 @@ public class jNetworkInterfaceServer implements Runnable {
    }
 
    /**
-    * Begin the class threading process.
+    * Build the socket connection.
     */
-   private void beginThreading() {
-      while (!isStopped) {
-         try {
-            Socket socket = server.accept();
-            new Thread(new jNetworkInterfaceServer(socket, serverName)).start();
-         } catch (IOException ex) {
-            System.out.println("Could not start jNetworkInterfaceServer.");
-         }
-      }
-   }
-
-   /**
-    * Perform a server command.
-    * @param s Socket
-    * @return Data
-    */
-   private String performCommand(Socket s) {
+   private synchronized void buildSocket() {
       try {
-         // Get the data input stream, parse the command, and send the output back.
-         DataInputStream socketIn = new DataInputStream(s.getInputStream());
-         String command = socketIn.readUTF();
-         if (command.isEmpty())
-            return RESPONSE_EMPTY;
-         // Parse the command
-         // There are two parts to every command. The command itself and the data.
-         String data = socketIn.readUTF();
-         // @todo parse the command
-         return null;
+         server = new ServerSocket(port);
       } catch (IOException ex) {
-         return RESPONSE_ERROR;
+         throw new RuntimeException("Server socket could not be initialized.");
       }
    }
 }
