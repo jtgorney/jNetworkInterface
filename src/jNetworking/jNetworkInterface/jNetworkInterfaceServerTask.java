@@ -37,13 +37,18 @@ public class jNetworkInterfaceServerTask implements Runnable {
     * Socket to process.
     */
    Socket socket;
+   /**
+    * A reference back to the server.
+    */
+   jNetworkInterfaceServer serverRef;
 
    /**
     * Class constructor that takes an open socket connection.
     * @param s Socket
     */
-   public jNetworkInterfaceServerTask(Socket s) {
+   public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server) {
       socket = s;
+      serverRef = server;
    }
 
    @Override
@@ -63,7 +68,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
          // Write the response
          ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
          // @todo Pass data as ArrayList
-         String responseData = jNetworkInterfaceServerCommand.execute(rawData);
+         String responseData = jNetworkInterfaceServerCommand.execute(rawData, serverRef);
          socketOut.writeObject(responseData);
          // Close the connections
          socketIn.close();

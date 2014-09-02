@@ -51,8 +51,10 @@ public class jNetworkInterfaceServerCommand {
     * @param command Command to execute
     * @return Data
     */
-   public static String execute(String command) {
+   public static String execute(String command, jNetworkInterfaceServer server) {
       switch (command) {
+         case "stats":
+            return stats(server);
          case "version":
             return version();
          case "ping":
@@ -94,6 +96,10 @@ public class jNetworkInterfaceServerCommand {
               jNetworkInterfaceServer.VERSION_REVISION + ": OK";
    }
 
+   /**
+    * Download the entire HTML page of reddit.com
+    * @return HTML
+    */
    public static String reddit() {
       URL url;
       BufferedReader reader;
@@ -109,5 +115,14 @@ public class jNetworkInterfaceServerCommand {
       } catch (IOException ex) {
          return "Error loading page";
       }
+   }
+
+   /**
+    * Output the server statistics.
+    * @param s Server reference
+    * @return CSV stats
+    */
+   public static String stats(jNetworkInterfaceServer s) {
+      return s.getStartTime().toString() + "," + s.getRequests();
    }
 }

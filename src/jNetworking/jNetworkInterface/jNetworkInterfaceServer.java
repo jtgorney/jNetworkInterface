@@ -121,7 +121,7 @@ public class jNetworkInterfaceServer implements Runnable {
                synchronized (this) {
                   requests++;
                }
-               new Thread(new jNetworkInterfaceServerTask(client)).start();
+               new Thread(new jNetworkInterfaceServerTask(client, this)).start();
             }
          } catch (IOException ex) {
             throw new RuntimeException("Could not process request sent from client connection.");
