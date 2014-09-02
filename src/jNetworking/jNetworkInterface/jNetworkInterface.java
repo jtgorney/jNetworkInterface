@@ -31,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Base64;
 
 /**
  * @author Jacob Gorney
@@ -230,6 +231,25 @@ public class jNetworkInterface {
       }
       isConnected = false;
       quality = -1;
+   }
+
+   /**
+    * Encode a string to base64. requires JDK 1.8.
+    * @param s String to encode
+    * @return Encoded string
+    * @throws UnsupportedEncodingException
+    */
+   public static String base64Encode(String s) throws UnsupportedEncodingException{
+      return Base64.getEncoder().encodeToString(s.getBytes("UTF-8"));
+   }
+
+   /**
+    * Decode a base64 encoded string.
+    * @param s Encoded string
+    * @return The decoded string
+    */
+   public static String base64Decode(String s) {
+      return Base64.getDecoder().decode(s).toString();
    }
 
    /**
