@@ -145,7 +145,6 @@ public class jNetworkInterface {
             //socketOut.writeUTF(command + System.getProperty("line.separator") + data);
             // @todo change to accept data
             socketOut.writeUTF(command);
-            System.out.println("Send UTF8 command '" + command + "'");
             // Get the response from the server
             DataInputStream socketIn = new DataInputStream(socket.getInputStream());
             String response = socketIn.readUTF();
@@ -183,25 +182,25 @@ public class jNetworkInterface {
          // Determine the connection quality based on the difference
          // of the two timestamps.
          // @todo this can be improved to become more precise.
-         if (difference < 1)
+         if (difference < 10)
             quality = 100;
-         else if (difference > 1 && difference < 5)
+         else if (difference > 10 && difference < 50)
             quality = 90;
-         else if (difference > 5 && difference < 20)
+         else if (difference > 50 && difference < 100)
             quality = 80;
-         else if (difference > 20 && difference < 100)
-            quality = 70;
          else if (difference > 100 && difference < 200)
-            quality = 60;
+            quality = 70;
          else if (difference > 200 && difference < 500)
-            quality = 50;
+            quality = 60;
          else if (difference > 500 && difference < 1000)
-            quality = 40;
+            quality = 50;
          else if (difference > 1000 && difference < 2000)
-            quality = 30;
+            quality = 40;
          else if (difference > 2000 && difference < 5000)
-            quality = 20;
+            quality = 30;
          else if (difference > 5000 && difference < 10000)
+            quality = 20;
+         else if (difference > 10000 && difference < 20000)
             quality = 10;
          else
             quality = 1;

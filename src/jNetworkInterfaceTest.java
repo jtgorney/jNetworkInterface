@@ -36,6 +36,13 @@ public class jNetworkInterfaceTest {
     */
    public static void main(String[] args) {
       jNetworkInterface client = new jNetworkInterface("127.0.0.1", 8080, false);
+      client.pollQuality();
+      System.out.println();
+      System.out.println("****************************************");
+      System.out.println("*        jNetworkInterface Test        *");
+      System.out.println("****************************************");
+      System.out.println();
+      System.out.println("Connection Quality Rating: " + client.getConnectionQuality());
       System.out.println();
       while (true) {
          Scanner keyboard = new Scanner(System.in);
