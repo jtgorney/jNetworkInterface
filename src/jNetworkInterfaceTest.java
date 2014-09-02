@@ -48,7 +48,7 @@ public class jNetworkInterfaceTest {
       System.out.println("Client is offline.");
       // Check the connection quality
       client.pollQuality();
-      System.out.println("Connection Quality Rating: " + client.getConnectionQuality());
+      System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
       System.out.println();
       while (true) {
          Scanner keyboard = new Scanner(System.in);

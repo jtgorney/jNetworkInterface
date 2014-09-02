@@ -24,6 +24,11 @@
 
 package jNetworking.jNetworkInterface;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+
 /**
  * Execute a command sent to the server.
  */
@@ -54,6 +59,8 @@ public class jNetworkInterfaceServerCommand {
             return ping();
          case "check":
             return check();
+         case "reddit":
+            return reddit();
          default:
             return RESPONSE_INVALID;
       }
@@ -85,5 +92,22 @@ public class jNetworkInterfaceServerCommand {
       return "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
               jNetworkInterfaceServer.VERSION_MINOR + "." +
               jNetworkInterfaceServer.VERSION_REVISION + ": OK";
+   }
+
+   public static String reddit() {
+      URL url;
+      BufferedReader reader;
+      String response = "";
+      String line = "";
+      try {
+         url = new URL("http://reddit.com");
+         reader = new BufferedReader(new InputStreamReader(url.openStream()));
+         while ((line = reader.readLine()) != null)
+            response += line;
+         reader.close();
+         return response;
+      } catch (IOException ex) {
+         return "Error loading page";
+      }
    }
 }

@@ -24,8 +24,8 @@
 
 package jNetworking.jNetworkInterface;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -57,20 +57,22 @@ public class jNetworkInterfaceServerTask implements Runnable {
     */
    private void performCommand() {
       try {
-         DataInputStream socketIn = new DataInputStream(socket.getInputStream());
-         String rawData = socketIn.readUTF();
+         ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
+         String rawData = (String)socketIn.readObject();
          // @todo process the response
          // Write the response
-         DataOutputStream socketOut = new DataOutputStream(socket.getOutputStream());
+         ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
          // @todo Pass data as ArrayList
          String responseData = jNetworkInterfaceServerCommand.execute(rawData);
-         socketOut.writeUTF(responseData);
+         socketOut.writeObject(responseData);
          // Close the connections
          socketIn.close();
          socketOut.close();
          socket.close();
       } catch (IOException ex) {
-         ex.printStackTrace();
+         throw new RuntimeException("Could not execute command.");
+      } catch (ClassNotFoundException ex) {
+         throw new RuntimeException("Could not execute command.");
       }
    }
 }

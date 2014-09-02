@@ -109,7 +109,7 @@ public class jNetworkInterface {
     */
    public boolean isOnline() {
       try {
-         URL testURL = new URL(this.TEST_ADDR);
+         URL testURL = new URL("http://" + this.TEST_ADDR);
          HttpURLConnection conn = (HttpURLConnection) testURL.openConnection();
          conn.getContent();
       } catch (MalformedURLException ex) {
@@ -142,13 +142,13 @@ public class jNetworkInterface {
       if (isConnected) {
          try {
             // Send the command
-            DataOutputStream socketOut = new DataOutputStream(socket.getOutputStream());
+            ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
             //socketOut.writeUTF(command + System.getProperty("line.separator") + data);
             // @todo change to accept data
-            socketOut.writeUTF(command);
+            socketOut.writeObject(command);
             // Get the response from the server
-            DataInputStream socketIn = new DataInputStream(socket.getInputStream());
-            String response = socketIn.readUTF();
+            ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
+            String response = (String)socketIn.readObject();
             // Close the connections
             socketOut.close();
             socketIn.close();
@@ -157,6 +157,8 @@ public class jNetworkInterface {
             return response;
          } catch (IOException ex) {
             throw new RuntimeException("Failed to send UTF8 command.");
+         } catch (ClassNotFoundException ex) {
+            throw new RuntimeException("Data conversion error.");
          }
       } else
          return null;
