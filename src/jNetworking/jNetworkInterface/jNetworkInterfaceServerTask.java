@@ -86,7 +86,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
          if (command.equals("Stats")) {
             responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
          } else if (command.equals("Version")) {
-            responseData = "jNetworkInterfaceServer " + + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+            responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                     jNetworkInterfaceServer.VERSION_MINOR + "." +
                     jNetworkInterfaceServer.VERSION_REVISION;
          } else {
@@ -100,9 +100,11 @@ public class jNetworkInterfaceServerTask implements Runnable {
                Constructor<?> cs = commandObj.getConstructor();
                Command cmd = (Command) cs.newInstance();
                // Execute the command
+               System.out.println("Executing command '" + command.toLowerCase() + "'");
                cmd.setup(params);
                responseData = cmd.run();
             } catch (Exception ex) {
+               System.out.println("Error executing command '" + command.toLowerCase() + "'");
                responseData = RESPONSE_INVALID;
             }
          }
