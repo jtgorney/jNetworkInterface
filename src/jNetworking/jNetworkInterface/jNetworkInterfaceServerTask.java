@@ -84,8 +84,10 @@ public class jNetworkInterfaceServerTask implements Runnable {
          String command = capitalize(data[0].toLowerCase().trim());
          // Check for server stats, version, and name commands. These are defaults
          if (command.equals("Stats")) {
+            System.out.println("Executing command '" + command.toLowerCase() + "'");
             responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
          } else if (command.equals("Version")) {
+            System.out.println("Executing command '" + command.toLowerCase() + "'");
             responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                     jNetworkInterfaceServer.VERSION_MINOR + "." +
                     jNetworkInterfaceServer.VERSION_REVISION;
