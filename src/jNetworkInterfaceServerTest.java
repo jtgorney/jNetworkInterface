@@ -33,7 +33,7 @@ public class jNetworkInterfaceServerTest {
     * @param args Command arguments
     */
    public static void main(String[] args) {
-      jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, false);
+      jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 250, false);
       // Spawn the server
       new Thread(server).start();
    }

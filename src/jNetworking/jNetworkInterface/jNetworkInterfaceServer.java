@@ -24,10 +24,14 @@
 
 package jNetworking.jNetworkInterface;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * @author Jacob Gorney
@@ -84,17 +88,32 @@ public class jNetworkInterfaceServer implements Runnable {
     * Count of the total requests sent to the server.
     */
    private int requests;
+   /**
+    * Processing queue for the server.
+    */
+   private Queue<jNetworkInterfaceServerTask> taskQueue;
+   /**
+    * The current task thread.
+    */
+   private Thread taskThread;
+   /**
+    * Maximum number of concurrent threads.
+    */
+   private int maxThreads;
 
    /**
     * Class constructor to create a threaded server object.
     * @param port Port to run the server on
+    * @param maxThreads number of available threads
     * @param ssl SSL
     */
-   public jNetworkInterfaceServer(int port, boolean ssl) {
+   public jNetworkInterfaceServer(int port, int maxThreads, boolean ssl) {
       this.isStopped = true;
       this.isPaused = false;
       this.port = port;
+      this.maxThreads = maxThreads;
       this.serverName = "jNetworkInterfaceServer 1.0.0";
+      this.taskQueue = new LinkedList<>();
    }
 
    @Override
@@ -121,7 +140,28 @@ public class jNetworkInterfaceServer implements Runnable {
                synchronized (this) {
                   requests++;
                }
-               new Thread(new jNetworkInterfaceServerTask(client, this)).start();
+               // Add the request to the queue.
+               if (taskQueue.size() == maxThreads) {
+                  // Print an error response.
+                  System.out.println("The maximum number of tasks has been exceeded. Max tasks: " + maxThreads);
+                  // Throw max connection error
+                  new Thread(new jNetworkInterfaceServerTask(client, this, true)).start();
+               } else {
+                  taskQueue.add(new jNetworkInterfaceServerTask(client, this));
+                  // Start the task thread if needed.
+                  if (taskThread == null || !taskThread.isAlive()) {
+                     // Build a new thread
+                     taskThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                           // Loop through the queue
+                           while (!taskQueue.isEmpty())
+                              new Thread(taskQueue.poll()).start();
+                        }
+                     });
+                     taskThread.start();
+                  }
+               }
             }
          } catch (IOException ex) {
             throw new RuntimeException("Could not process request sent from client connection.");
@@ -212,8 +252,9 @@ public class jNetworkInterfaceServer implements Runnable {
          System.out.println("jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                  jNetworkInterfaceServer.VERSION_MINOR + "." +
                  jNetworkInterfaceServer.VERSION_REVISION);
-         System.out.println("-------------------------");
+         System.out.println("======================================");
          System.out.println("Running on port: " + port);
+         System.out.println("Maximum Threads: " + maxThreads);
          System.out.println();
       } catch (IOException ex) {
          throw new RuntimeException("Server socket could not be initialized.");

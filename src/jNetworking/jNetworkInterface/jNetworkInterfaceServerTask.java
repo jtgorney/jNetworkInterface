@@ -55,12 +55,23 @@ public class jNetworkInterfaceServerTask implements Runnable {
     * A reference back to the server.
     */
    jNetworkInterfaceServer serverRef;
+   /**
+    * Max thread indicator.
+    */
+   boolean isMaxThreads;
 
    /**
     * Class constructor that takes an open socket connection.
     * @param s Socket
     */
    public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server) {
+      socket = s;
+      serverRef = server;
+      isMaxThreads = false;
+   }
+
+   public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server, boolean isMaxThreads) {
+      this.isMaxThreads = isMaxThreads;
       socket = s;
       serverRef = server;
    }
@@ -83,7 +94,10 @@ public class jNetworkInterfaceServerTask implements Runnable {
          // Get the data we need
          String command = capitalize(data[0].toLowerCase().trim());
          // Check for server stats, version, and name commands. These are defaults
-         if (command.equals("Stats")) {
+         if (isMaxThreads) {
+            // Handle max thread error
+            responseData = "Error: Server has reached maximum capacity.";
+         } else if (command.equals("Stats")) {
             System.out.println("Executing command '" + command.toLowerCase() + "'");
             responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
          } else if (command.equals("Version")) {
