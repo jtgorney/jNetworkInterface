@@ -147,7 +147,9 @@ public class jNetworkInterfaceServer implements Runnable {
                   // Throw max connection error
                   new Thread(new jNetworkInterfaceServerTask(client, this, true)).start();
                } else {
-                  taskQueue.add(new jNetworkInterfaceServerTask(client, this));
+                  synchronized (this) {
+                     taskQueue.add(new jNetworkInterfaceServerTask(client, this));
+                  }
                   // Start the task thread if needed.
                   if (taskThread == null || !taskThread.isAlive()) {
                      // Build a new thread
@@ -183,6 +185,24 @@ public class jNetworkInterfaceServer implements Runnable {
     */
    public synchronized Date getStartTime() {
       return serverStarted;
+   }
+
+   /**
+    * Get the server's max thread count.
+    * @return
+    */
+   public synchronized int getMaxThreads() {
+      return maxThreads;
+   }
+
+   /**
+    * Set the server's max thread count.
+    * @param threads Thread count
+    */
+   public synchronized void setMaxThreads(int threads) {
+      if (threads < 0)
+         return;
+      maxThreads = threads;
    }
 
    /**
