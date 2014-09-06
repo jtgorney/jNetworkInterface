@@ -50,15 +50,15 @@ public class jNetworkInterfaceServerTask implements Runnable {
    /**
     * Socket to process.
     */
-   Socket socket;
+   private Socket socket;
    /**
     * A reference back to the server.
     */
-   jNetworkInterfaceServer serverRef;
+   private jNetworkInterfaceServer serverRef;
    /**
     * Max thread indicator.
     */
-   boolean isMaxThreads;
+   private boolean isMaxThreads;
 
    /**
     * Class constructor that takes an open socket connection.
@@ -85,7 +85,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
     * Perform a server command.
     */
    private void performCommand() {
-      if (!isMaxThreads)
+      if (!isMaxThreads && !serverRef.isPaused())
          serverRef.incrementResources();
       try {
          ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
@@ -95,7 +95,9 @@ public class jNetworkInterfaceServerTask implements Runnable {
          // Get the data we need
          String command = capitalize(data[0].toLowerCase().trim());
          // Check for server stats, version, and name commands. These are defaults
-         if (isMaxThreads) {
+         if (serverRef.isPaused() && !command.equals("Unpause")) {
+            responseData = "Error: Server is paused.";
+         } else if (isMaxThreads) {
             // Handle max thread error
             responseData = "Error: Server has reached maximum capacity.";
          } else if (command.equals("Stats")) {
@@ -106,6 +108,12 @@ public class jNetworkInterfaceServerTask implements Runnable {
             responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                     jNetworkInterfaceServer.VERSION_MINOR + "." +
                     jNetworkInterfaceServer.VERSION_REVISION;
+         } else if (command.equals("Pause")) {
+            serverRef.pause();
+            responseData = "Server paused.";
+         } else if (command.equals("Unpause")) {
+            serverRef.unpause();
+            responseData = "Server Unpaused.";
          } else {
             // Build params
             ArrayList<Object> params = new ArrayList<>();
@@ -118,7 +126,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
                Command cmd = (Command) cs.newInstance();
                // Execute the command
                System.out.println("Executing command '" + command.toLowerCase() + "'");
-               cmd.setup(params);
+               cmd.setup(params, socket);
                responseData = cmd.run();
             } catch (Exception ex) {
                System.out.println("Error executing command '" + command.toLowerCase() + "'");
@@ -132,14 +140,14 @@ public class jNetworkInterfaceServerTask implements Runnable {
          socketIn.close();
          socketOut.close();
          socket.close();
-         if (!isMaxThreads)
+         if (!isMaxThreads && !serverRef.isPaused())
             serverRef.decrementResources();
       } catch (IOException ex) {
-         if (!isMaxThreads)
+         if (!isMaxThreads && !serverRef.isPaused())
             serverRef.decrementResources();
          throw new RuntimeException("Could not execute command.");
       } catch (ClassNotFoundException ex) {
-         if (!isMaxThreads)
+         if (!isMaxThreads && !serverRef.isPaused())
             serverRef.decrementResources();
          throw new RuntimeException("Could not execute command.");
       }

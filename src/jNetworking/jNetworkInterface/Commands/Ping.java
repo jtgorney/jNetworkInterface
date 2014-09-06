@@ -25,6 +25,8 @@
 package jNetworking.jNetworkInterface.Commands;
 
 import jNetworking.jNetworkInterface.Command;
+
+import java.net.Socket;
 import java.util.ArrayList;
 
 /**
@@ -32,7 +34,7 @@ import java.util.ArrayList;
  */
 public class Ping implements Command {
    @Override
-   public void setup(ArrayList<Object> input) {
+   public void setup(ArrayList<Object> input, Socket client) {
       // Do nothing for this command
    }
 

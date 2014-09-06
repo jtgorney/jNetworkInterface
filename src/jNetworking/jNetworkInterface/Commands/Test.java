@@ -26,21 +26,24 @@ package jNetworking.jNetworkInterface.Commands;
 
 import jNetworking.jNetworkInterface.Command;
 
+import java.net.Socket;
 import java.util.ArrayList;
 
 /**
  * jNetworkInterfaceServer Command object template.
  */
 public class Test implements Command {
+   private Socket client;
    @Override
-   public void setup(ArrayList<Object> input) {
-      // Do nothing for this command
+   public void setup(ArrayList<Object> input, Socket client) {
+      this.client = client;
    }
 
    @Override
    public String run() {
       try {
-         Thread.sleep(60 * 1000 * 5);
+         for (int i = 0; i < 6; i++)
+               Thread.sleep(1000);
       } catch (InterruptedException ex) {
 
       }

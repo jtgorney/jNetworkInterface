@@ -136,37 +136,34 @@ public class jNetworkInterfaceServer implements Runnable {
             return;
          }
          try {
-            // Only run if not paused
-            if (!isPaused()) {
-               Socket client = server.accept();
-               System.out.println("Received request from client. Attempting to process.");
+            Socket client = server.accept();
+            System.out.println("Received request from client. Attempting to process.");
+            synchronized (this) {
+               requests++;
+            }
+            // Add the request to the queue.
+            if (currentThreadCount == maxThreads || taskQueue.size() == maxThreads) {
+               // Print an error response.
+               System.out.println("The maximum number of tasks has been exceeded. Max tasks: " + maxThreads);
+               // Throw max connection error
+               new Thread(new jNetworkInterfaceServerTask(client, this, true)).start();
+            } else {
                synchronized (this) {
-                  requests++;
+                  taskQueue.add(new jNetworkInterfaceServerTask(client, this));
                }
-               // Add the request to the queue.
-               if (currentThreadCount == maxThreads || taskQueue.size() == maxThreads) {
-                  // Print an error response.
-                  System.out.println("The maximum number of tasks has been exceeded. Max tasks: " + maxThreads);
-                  // Throw max connection error
-                  new Thread(new jNetworkInterfaceServerTask(client, this, true)).start();
-               } else {
-                  synchronized (this) {
-                     taskQueue.add(new jNetworkInterfaceServerTask(client, this));
-                  }
-                  // Start the task thread if needed.
-                  if (taskThread == null || !taskThread.isAlive()) {
-                     // Build a new thread
-                     taskThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                           // Loop through the queue
-                           while (!taskQueue.isEmpty()) {
-                              new Thread(taskQueue.poll()).start();
-                           }
+               // Start the task thread if needed.
+               if (taskThread == null || !taskThread.isAlive()) {
+                  // Build a new thread
+                  taskThread = new Thread(new Runnable() {
+                     @Override
+                     public void run() {
+                        // Loop through the queue
+                        while (!taskQueue.isEmpty()) {
+                           new Thread(taskQueue.poll()).start();
                         }
-                     });
-                     taskThread.start();
-                  }
+                     }
+                  });
+                  taskThread.start();
                }
             }
          } catch (IOException ex) {
@@ -241,6 +238,14 @@ public class jNetworkInterfaceServer implements Runnable {
    public synchronized void pause() {
       isPaused = true;
       System.out.println("jNetworkInterfaceServer paused.");
+   }
+
+   /**
+    * Start accepting requests.
+    */
+   public synchronized void unpause() {
+      isPaused = false;
+      System.out.println("jNetworkInterfaceServer Unpaused.");
    }
 
    /**
