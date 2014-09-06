@@ -78,7 +78,6 @@ public class jNetworkInterfaceServerTask implements Runnable {
 
    @Override
    public void run() {
-      // Run the command
       performCommand();
    }
 
@@ -86,6 +85,8 @@ public class jNetworkInterfaceServerTask implements Runnable {
     * Perform a server command.
     */
    private void performCommand() {
+      if (!isMaxThreads)
+         serverRef.incrementResources();
       try {
          ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
          String rawData = (String)socketIn.readObject();
@@ -131,9 +132,15 @@ public class jNetworkInterfaceServerTask implements Runnable {
          socketIn.close();
          socketOut.close();
          socket.close();
+         if (!isMaxThreads)
+            serverRef.decrementResources();
       } catch (IOException ex) {
+         if (!isMaxThreads)
+            serverRef.decrementResources();
          throw new RuntimeException("Could not execute command.");
       } catch (ClassNotFoundException ex) {
+         if (!isMaxThreads)
+            serverRef.decrementResources();
          throw new RuntimeException("Could not execute command.");
       }
    }

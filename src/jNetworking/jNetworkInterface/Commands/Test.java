@@ -22,19 +22,28 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
+package jNetworking.jNetworkInterface.Commands;
+
+import jNetworking.jNetworkInterface.Command;
+
+import java.util.ArrayList;
 
 /**
- * Simple test for jNetworkInterfaceServer.
+ * jNetworkInterfaceServer Command object template.
  */
-public class jNetworkInterfaceServerTest {
-   /**
-    * Main function
-    * @param args Command arguments
-    */
-   public static void main(String[] args) {
-      jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-      // Spawn the server
-      new Thread(server).start();
+public class Test implements Command {
+   @Override
+   public void setup(ArrayList<Object> input) {
+      // Do nothing for this command
+   }
+
+   @Override
+   public String run() {
+      try {
+         Thread.sleep(60 * 1000 * 5);
+      } catch (InterruptedException ex) {
+
+      }
+      return "DONE";
    }
 }

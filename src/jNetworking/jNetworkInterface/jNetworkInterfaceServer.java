@@ -100,6 +100,10 @@ public class jNetworkInterfaceServer implements Runnable {
     * Maximum number of concurrent threads.
     */
    private int maxThreads;
+   /**
+    * Current number of threads running.
+    */
+   private int currentThreadCount;
 
    /**
     * Class constructor to create a threaded server object.
@@ -108,6 +112,7 @@ public class jNetworkInterfaceServer implements Runnable {
     * @param ssl SSL
     */
    public jNetworkInterfaceServer(int port, int maxThreads, boolean ssl) {
+      this.currentThreadCount = 0;
       this.isStopped = true;
       this.isPaused = false;
       this.port = port;
@@ -141,7 +146,7 @@ public class jNetworkInterfaceServer implements Runnable {
                   requests++;
                }
                // Add the request to the queue.
-               if (taskQueue.size() == maxThreads) {
+               if (currentThreadCount == maxThreads || taskQueue.size() == maxThreads) {
                   // Print an error response.
                   System.out.println("The maximum number of tasks has been exceeded. Max tasks: " + maxThreads);
                   // Throw max connection error
@@ -157,8 +162,9 @@ public class jNetworkInterfaceServer implements Runnable {
                         @Override
                         public void run() {
                            // Loop through the queue
-                           while (!taskQueue.isEmpty())
+                           while (!taskQueue.isEmpty()) {
                               new Thread(taskQueue.poll()).start();
+                           }
                         }
                      });
                      taskThread.start();
@@ -189,7 +195,7 @@ public class jNetworkInterfaceServer implements Runnable {
 
    /**
     * Get the server's max thread count.
-    * @return
+    * @return Max thread count
     */
    public synchronized int getMaxThreads() {
       return maxThreads;
@@ -203,6 +209,22 @@ public class jNetworkInterfaceServer implements Runnable {
       if (threads < 0)
          return;
       maxThreads = threads;
+   }
+
+   /**
+    * Increment resource usage.
+    */
+   public synchronized void incrementResources() {
+      currentThreadCount++;
+      System.out.println("Resources Incremented: " + currentThreadCount);
+   }
+
+   /**
+    * Decrement resource usage.
+    */
+   public synchronized void decrementResources() {
+      currentThreadCount--;
+      System.out.println("Resources Decremented: " + currentThreadCount);
    }
 
    /**
