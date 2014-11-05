@@ -30,45 +30,45 @@ import java.util.Scanner;
  * Test jNetworkInterface client.
  */
 public class jNetworkInterfaceTest {
-   /**
-    * Main function
-    * @param args Command arguments
-    */
-   public static void main(String[] args) {
-      jNetworkInterface client = new jNetworkInterface("127.0.0.1", 8080, false);
-      System.out.println();
-      System.out.println("****************************************");
-      System.out.println("*        jNetworkInterface Test        *");
-      System.out.println("****************************************");
-      System.out.println();
-      // Check online status
-      if (client.isOnline())
-         System.out.println("Client is online.");
-      else
-      System.out.println("Client is offline.");
-      // Check the connection quality
-      client.pollQuality();
-      System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
-      System.out.println();
-      while (true) {
-         Scanner keyboard = new Scanner(System.in);
-         System.out.print("Send no-var command (type 'exit' to stop): ");
-        String cliText = keyboard.nextLine();
-         // Check for cancel
-         if (cliText.equals("exit"))
-            break;
-         // Send the command
-         String response = "";
-         try {
-            response = client.sendUTF8Command(cliText, null);
-         } catch (RuntimeException ex) {
-            System.out.println("The server is not accepting connections or has not been started.");
-         }
-         if (!response.isEmpty()) {
+    /**
+     * Main function
+     * @param args Command arguments
+     */
+    public static void main(String[] args) {
+        jNetworkInterface client = new jNetworkInterface("127.0.0.1", 8080, false);
+        System.out.println();
+        System.out.println("****************************************");
+        System.out.println("*        jNetworkInterface Test        *");
+        System.out.println("****************************************");
+        System.out.println();
+        // Check online status
+        if (client.isOnline())
+            System.out.println("Client is online.");
+        else
+            System.out.println("Client is offline.");
+        // Check the connection quality
+        // client.pollQuality();
+        // System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
+        // System.out.println();
+        while (true) {
+            Scanner keyboard = new Scanner(System.in);
+            System.out.print("Send no-var command (type 'exit' to stop): ");
+            String cliText = keyboard.nextLine();
+            // Check for cancel
+            if (cliText.equals("exit"))
+                break;
+            // Send the command
+            String response = "";
+            try {
+                response = client.sendCommand(cliText, null);
+            } catch (RuntimeException ex) {
+                System.out.println("The server is not accepting connections or has not been started.");
+            }
+            if (!response.isEmpty()) {
+                System.out.println();
+                System.out.println(response);
+            }
             System.out.println();
-            System.out.println(response);
-         }
-         System.out.println();
-      }
-   }
+        }
+    }
 }

@@ -28,13 +28,13 @@ import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
  * Simple test for jNetworkInterfaceServer.
  */
 public class jNetworkInterfaceServerTest {
-   /**
-    * Main function
-    * @param args Command arguments
-    */
-   public static void main(String[] args) {
-      jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-      // Spawn the server
-      new Thread(server).start();
-   }
+    /**
+     * Main function
+     * @param args Command arguments
+     */
+    public static void main(String[] args) {
+        jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
+        // Spawn the server
+        new Thread(server).start();
+    }
 }

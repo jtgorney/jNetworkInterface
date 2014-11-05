@@ -34,7 +34,7 @@ import java.util.ArrayList;
  */
 public class Ping implements Command {
    @Override
-   public void setup(ArrayList<Object> input, Socket client) {
+   public void setup(ArrayList<String> input, Socket client) {
       // Do nothing for this command
    }
 

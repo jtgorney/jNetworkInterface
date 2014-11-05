@@ -35,7 +35,7 @@ import java.util.ArrayList;
 public class Test implements Command {
    private Socket client;
    @Override
-   public void setup(ArrayList<Object> input, Socket client) {
+   public void setup(ArrayList<String> input, Socket client) {
       this.client = client;
    }
 

@@ -24,143 +24,157 @@
 
 package jNetworking.jNetworkInterface;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Properties;
 
 /**
  * Class responsible for processing the commands sent to the server.
  */
 public class jNetworkInterfaceServerTask implements Runnable {
-   /**
-    * Error response code.
-    */
-   public static final String RESPONSE_ERROR = "ERROR";
-   /**
-    * Empty response code.
-    */
-   public static final String RESPONSE_EMPTY = "EMPTY";
-   /**
-    * Invalid command response code.
-    */
-   public static final String RESPONSE_INVALID = "INVALID";
-   /**
-    * Socket to process.
-    */
-   private Socket socket;
-   /**
-    * A reference back to the server.
-    */
-   private jNetworkInterfaceServer serverRef;
-   /**
-    * Max thread indicator.
-    */
-   private boolean isMaxThreads;
+    /**
+     * Error response code.
+     */
+    public static final String RESPONSE_ERROR = "ERROR";
+    /**
+     * Empty response code.
+     */
+    public static final String RESPONSE_EMPTY = "EMPTY";
+    /**
+     * Invalid command response code.
+     */
+    public static final String RESPONSE_INVALID = "INVALID";
+    /**
+     * Socket to process.
+     */
+    private Socket socket;
+    /**
+     * A reference back to the server.
+     */
+    private jNetworkInterfaceServer serverRef;
+    /**
+     * Max thread indicator.
+     */
+    private boolean isMaxThreads;
 
-   /**
-    * Class constructor that takes an open socket connection.
-    * @param s Socket
-    */
-   public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server) {
-      socket = s;
-      serverRef = server;
-      isMaxThreads = false;
-   }
+    /**
+     * Class constructor that takes an open socket connection.
+     *
+     * @param s Socket
+     */
+    public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server) {
+        socket = s;
+        serverRef = server;
+        isMaxThreads = false;
+    }
 
-   public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server, boolean isMaxThreads) {
-      this.isMaxThreads = isMaxThreads;
-      socket = s;
-      serverRef = server;
-   }
+    public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server, boolean isMaxThreads) {
+        this.isMaxThreads = isMaxThreads;
+        socket = s;
+        serverRef = server;
+    }
 
-   @Override
-   public void run() {
-      performCommand();
-   }
+    @Override
+    public void run() {
+        performCommand();
+    }
 
-   /**
-    * Perform a server command.
-    */
-   private void performCommand() {
-      if (!isMaxThreads && !serverRef.isPaused())
-         serverRef.incrementResources();
-      try {
-         ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
-         String rawData = (String)socketIn.readObject();
-         String[] data = rawData.split(System.getProperty("line.separator"));
-         String responseData = "";
-         // Get the data we need
-         String command = capitalize(data[0].toLowerCase().trim());
-         // Check for server stats, version, and name commands. These are defaults
-         if (serverRef.isPaused() && !command.equals("Unpause")) {
-            responseData = "Error: Server is paused.";
-         } else if (isMaxThreads) {
-            // Handle max thread error
-            responseData = "Error: Server has reached maximum capacity.";
-         } else if (command.equals("Stats")) {
-            System.out.println("Executing command '" + command.toLowerCase() + "'");
-            responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
-         } else if (command.equals("Version")) {
-            System.out.println("Executing command '" + command.toLowerCase() + "'");
-            responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
-                    jNetworkInterfaceServer.VERSION_MINOR + "." +
-                    jNetworkInterfaceServer.VERSION_REVISION;
-         } else if (command.equals("Pause")) {
-            serverRef.pause();
-            responseData = "Server paused.";
-         } else if (command.equals("Unpause")) {
-            serverRef.unpause();
-            responseData = "Server Unpaused.";
-         } else {
-            // Build params
-            ArrayList<Object> params = new ArrayList<>();
-            for (int i = 1; i < data.length; i++)
-               params.add(data[i]);
-            try {
-               // Create the command
-               Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." + command);
-               Constructor<?> cs = commandObj.getConstructor();
-               Command cmd = (Command) cs.newInstance();
-               // Execute the command
-               System.out.println("Executing command '" + command.toLowerCase() + "'");
-               cmd.setup(params, socket);
-               responseData = cmd.run();
-            } catch (Exception ex) {
-               System.out.println("Error executing command '" + command.toLowerCase() + "'");
-               responseData = RESPONSE_INVALID;
+    /**
+     * Perform a server command.
+     */
+    private void performCommand() {
+        if (!isMaxThreads && !serverRef.isPaused())
+            serverRef.incrementResources();
+        try {
+            BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String command = "";
+            ArrayList<String> data = new ArrayList<>();
+            // Read the data
+            String line;
+            boolean isCommand = false;
+            while ((line = socketIn.readLine()) != null) {
+                // Break the reader loop and process the response
+                if (line.equals("END COMMAND"))
+                    break;
+                if (!isCommand) {
+                    isCommand = true;
+                    command = line.toLowerCase().trim();
+                } else
+                    data.add(line);
             }
-         }
-         // Write the response
-         ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
-         socketOut.writeObject(responseData);
-         // Close the connections
-         socketIn.close();
-         socketOut.close();
-         socket.close();
-         if (!isMaxThreads && !serverRef.isPaused())
-            serverRef.decrementResources();
-      } catch (IOException ex) {
-         if (!isMaxThreads && !serverRef.isPaused())
-            serverRef.decrementResources();
-         throw new RuntimeException("Could not execute command.");
-      } catch (ClassNotFoundException ex) {
-         if (!isMaxThreads && !serverRef.isPaused())
-            serverRef.decrementResources();
-         throw new RuntimeException("Could not execute command.");
-      }
-   }
+            // Build the response
+            String responseData;
+            // Check for server stats, version, and name commands. These are defaults
+            if (serverRef.isPaused() && !command.equals("unpause")) {
+                responseData = "Error: Server is paused.";
+            } else if (isMaxThreads) {
+                // Handle max thread error
+                responseData = "Error: Server has reached maximum capacity.";
+            } else if (command.equals("")) {
+                responseData = "Error: No command.";
+            } else if (command.equals("Stats")) {
+                System.out.println("Executing command '" + command.toLowerCase() + "'");
+                responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
+            } else if (command.equals("Version")) {
+                System.out.println("Executing command '" + command.toLowerCase() + "'");
+                responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+                        jNetworkInterfaceServer.VERSION_MINOR + "." +
+                        jNetworkInterfaceServer.VERSION_REVISION;
+            } else if (command.equals("pause")) {
+                serverRef.pause();
+                responseData = "Server paused.";
+            } else if (command.equals("unpause")) {
+                serverRef.unpause();
+                responseData = "Server Unpaused.";
+            } else {
+                try {
+                    // Create the command
+                    // Get the command
+                    Properties map = new Properties();
+                    map.load(getClass().getResourceAsStream("commands.properties"));
+                    // Load the command
+                    Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." +
+                            map.getProperty("command." + command.toLowerCase()));
+                    Constructor<?> cs = commandObj.getConstructor();
+                    Command cmd = (Command) cs.newInstance();
+                    // Execute the command
+                    System.out.println("Executing command '" + command.toLowerCase() + "'");
+                    cmd.setup(data, socket);
+                    responseData = cmd.run();
+                } catch (Exception ex) {
+                    // ex.printStackTrace();
+                    System.out.println("Error executing command '" + command.toLowerCase() + "'");
+                    responseData = RESPONSE_INVALID;
+                }
+            }
+            // Write the response
+            PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
+            socketOut.println(responseData);
+            // Close the connections
+            socketIn.close();
+            socketOut.close();
+            socket.close();
+            if (!isMaxThreads && !serverRef.isPaused())
+                serverRef.decrementResources();
+        } catch (IOException ex) {
+            // ex.printStackTrace();
+            if (!isMaxThreads && !serverRef.isPaused())
+                serverRef.decrementResources();
+            throw new RuntimeException("Could not execute command.");
+        }
+    }
 
-   /**
-    * Capitalize the first character of a string.
-    * @param s String
-    * @return Capitalized string
-    */
-   private String capitalize(String s) {
-         char[] arr = s.toCharArray();
-         arr[0] = Character.toUpperCase(arr[0]);
-         return new String(arr);
-   }
+    /**
+     * Capitalize the first character of a string.
+     *
+     * @param s String
+     * @return Capitalized string
+     */
+    private String capitalize(String s) {
+        char[] arr = s.toCharArray();
+        arr[0] = Character.toUpperCase(arr[0]);
+        return new String(arr);
+    }
 }
