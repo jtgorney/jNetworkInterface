@@ -36,27 +36,35 @@ import java.util.ArrayList;
 /**
  * jNetworkInterfaceServer Command object template.
  */
-public class Reddit implements Command {
+public class Website implements Command {
+
+    private String url;
+
    @Override
    public void setup(ArrayList<String> input, Socket client) {
       // Do nothing for this command
+       // Store the URL
+       url = input.get(0);
+       // Check for http/s
+       if (!(url.startsWith("http://") || url.startsWith("https://")))
+           url = "https://" + url;
    }
 
    @Override
    public String run() {
-      URL url;
-      BufferedReader reader;
-      String response = "";
-      String line = "";
-      try {
-         url = new URL("http://reddit.com");
-         reader = new BufferedReader(new InputStreamReader(url.openStream()));
-         while ((line = reader.readLine()) != null)
-            response += line;
-         reader.close();
-         return response;
-      } catch (IOException ex) {
-         return "Error loading page";
-      }
+       URL url;
+       BufferedReader reader;
+       String response = "";
+       String line = "";
+       try {
+           url = new URL(this.url);
+           reader = new BufferedReader(new InputStreamReader(url.openStream()));
+           while ((line = reader.readLine()) != null)
+               response += line;
+           reader.close();
+           return response;
+       } catch (IOException ex) {
+           return "Error loading page";
+       }
    }
 }

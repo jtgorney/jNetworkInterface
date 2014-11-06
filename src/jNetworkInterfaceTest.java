@@ -24,6 +24,7 @@
 
 import jNetworking.jNetworkInterface.jNetworkInterface;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -47,20 +48,29 @@ public class jNetworkInterfaceTest {
         else
             System.out.println("Client is offline.");
         // Check the connection quality
-        // client.pollQuality();
-        // System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
-        // System.out.println();
+        client.pollQuality();
+        System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
+        System.out.println();
         while (true) {
             Scanner keyboard = new Scanner(System.in);
-            System.out.print("Send no-var command (type 'exit' to stop): ");
+            System.out.print("Send command (type 'exit' to stop): ");
             String cliText = keyboard.nextLine();
+
+            // Parse
+            String[] cliSplit = cliText.split(" ");
+
             // Check for cancel
-            if (cliText.equals("exit"))
+            if (cliSplit[0].equals("exit"))
                 break;
             // Send the command
             String response = "";
             try {
-                response = client.sendCommand(cliText, null);
+                // Get the params
+                ArrayList<String> params = new ArrayList<>();
+                String command = cliSplit[0];
+                for (int i = 1; i < cliSplit.length; i++)
+                    params.add(cliSplit[i]);
+                response = client.sendCommand(command, params);
             } catch (RuntimeException ex) {
                 System.out.println("The server is not accepting connections or has not been started.");
             }

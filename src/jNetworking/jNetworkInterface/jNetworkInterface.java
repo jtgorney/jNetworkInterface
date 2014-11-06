@@ -188,6 +188,7 @@ public class jNetworkInterface {
             try {
                 responseEnd = Long.parseLong(sendCommand("ping", null));
             } catch (NumberFormatException ex) {
+                ex.printStackTrace();
                 quality = -1;
                 return;
             }
