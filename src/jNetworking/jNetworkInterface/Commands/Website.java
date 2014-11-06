@@ -38,7 +38,7 @@ import java.util.ArrayList;
  */
 public class Website implements Command {
 
-    private String url;
+   private String url;
 
    @Override
    public void setup(ArrayList<String> input, Socket client) {
@@ -47,7 +47,7 @@ public class Website implements Command {
        url = input.get(0);
        // Check for http/s
        if (!(url.startsWith("http://") || url.startsWith("https://")))
-           url = "https://" + url;
+           url = "http://" + url;
    }
 
    @Override
