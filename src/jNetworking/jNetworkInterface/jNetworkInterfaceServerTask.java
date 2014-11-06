@@ -114,7 +114,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
                 responseData = "Error: Server has reached maximum capacity.";
             } else if (command.equals("")) {
                 responseData = "Error: No command.";
-            } else if (command.equals("Stats")) {
+            } else if (command.equals("stats")) {
                 System.out.println("Executing command '" + command.toLowerCase() + "'");
                 responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
             } else if (command.equals("Version")) {
