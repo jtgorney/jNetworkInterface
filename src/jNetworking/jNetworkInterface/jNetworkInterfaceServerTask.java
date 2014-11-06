@@ -58,6 +58,10 @@ public class jNetworkInterfaceServerTask implements Runnable {
      * Max thread indicator.
      */
     private boolean isMaxThreads;
+    /**
+     * Server logger object.
+     */
+    private ServerLogger logger;
 
     /**
      * Class constructor that takes an open socket connection.
@@ -68,12 +72,20 @@ public class jNetworkInterfaceServerTask implements Runnable {
         socket = s;
         serverRef = server;
         isMaxThreads = false;
+        if (LogLocation.getLocation() != null)
+            logger = new ServerLogger(LogLocation.getLocation(), ServerLogger.LOG_ALL);
+        else
+            logger = new ServerLogger();
     }
 
     public jNetworkInterfaceServerTask(Socket s, jNetworkInterfaceServer server, boolean isMaxThreads) {
         this.isMaxThreads = isMaxThreads;
         socket = s;
         serverRef = server;
+        if (LogLocation.getLocation() != null)
+            logger = new ServerLogger(LogLocation.getLocation(), ServerLogger.LOG_ALL);
+        else
+            logger = new ServerLogger();
     }
 
     @Override
@@ -108,25 +120,30 @@ public class jNetworkInterfaceServerTask implements Runnable {
             String responseData;
             // Check for server stats, version, and name commands. These are defaults
             if (serverRef.isPaused() && !command.equals("unpause")) {
+                logger.write("Server is paused.", ServerLogger.LOG_WARN);
                 responseData = "Error: Server is paused.";
             } else if (isMaxThreads) {
                 // Handle max thread error
+                logger.write("Server has reached maximum capacity..", ServerLogger.LOG_WARN);
                 responseData = "Error: Server has reached maximum capacity.";
             } else if (command.equals("")) {
+                logger.write("Server did not receive a command.", ServerLogger.LOG_WARN);
                 responseData = "Error: No command.";
             } else if (command.equals("stats")) {
-                System.out.println("Executing command '" + command.toLowerCase() + "'");
+                logger.write("Executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_NOTICE);
                 responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
             } else if (command.equals("Version")) {
-                System.out.println("Executing command '" + command.toLowerCase() + "'");
+                logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
                 responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                         jNetworkInterfaceServer.VERSION_MINOR + "." +
                         jNetworkInterfaceServer.VERSION_REVISION;
             } else if (command.equals("pause")) {
                 serverRef.pause();
+                logger.write("Server paused.", ServerLogger.LOG_NOTICE);
                 responseData = "Server paused.";
             } else if (command.equals("unpause")) {
                 serverRef.unpause();
+                logger.write("Server unpaused.", ServerLogger.LOG_NOTICE);
                 responseData = "Server Unpaused.";
             } else {
                 try {
@@ -140,12 +157,12 @@ public class jNetworkInterfaceServerTask implements Runnable {
                     Constructor<?> cs = commandObj.getConstructor();
                     Command cmd = (Command) cs.newInstance();
                     // Execute the command
-                    System.out.println("Executing command '" + command.toLowerCase() + "'");
+                    logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
                     cmd.setup(data, socket);
                     responseData = cmd.run();
                 } catch (Exception ex) {
                     // ex.printStackTrace();
-                    System.out.println("Error executing command '" + command.toLowerCase() + "'");
+                    logger.write("Error executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_ERROR);
                     responseData = RESPONSE_INVALID;
                 }
             }
@@ -162,6 +179,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
             // ex.printStackTrace();
             if (!isMaxThreads && !serverRef.isPaused())
                 serverRef.decrementResources();
+            logger.write("Could not execute command.", ServerLogger.LOG_ERROR);
             throw new RuntimeException("Could not execute command.");
         }
     }

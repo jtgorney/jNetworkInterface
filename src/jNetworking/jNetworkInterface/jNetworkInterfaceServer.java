@@ -102,6 +102,10 @@ public class jNetworkInterfaceServer implements Runnable {
      * Current number of threads running.
      */
     private int currentThreadCount;
+    /**
+     * Server logger.
+     */
+    private ServerLogger logger;
 
     /**
      * Class constructor to create a threaded server object.
@@ -117,6 +121,12 @@ public class jNetworkInterfaceServer implements Runnable {
         this.maxThreads = maxThreads;
         this.serverName = "jNetworkInterfaceServer 1.0.0";
         this.taskQueue = new LinkedList<>();
+        // Build the logging object.
+        if (LogLocation.getLocation() != null)
+            logger = new ServerLogger(LogLocation.getLocation(), ServerLogger.LOG_ALL);
+        else
+            logger = new ServerLogger();
+        logger.write("Server object generated.", ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -130,6 +140,8 @@ public class jNetworkInterfaceServer implements Runnable {
         this.maxThreads = 50;
         this.serverName = "jNetworkInterfaceServer 1.0.0";
         this.taskQueue = new LinkedList<>();
+        logger = new ServerLogger();
+        logger.write("Server object generated.", ServerLogger.LOG_NOTICE);
     }
 
     @Override
@@ -150,14 +162,15 @@ public class jNetworkInterfaceServer implements Runnable {
             }
             try {
                 Socket client = server.accept();
-                System.out.println("Received request from client. Attempting to process.");
+                logger.write("Received request from client, attempting to process.", ServerLogger.LOG_NOTICE);
                 synchronized (this) {
                     requests++;
                 }
                 // Add the request to the queue.
                 if (currentThreadCount == maxThreads || taskQueue.size() == maxThreads) {
                     // Print an error response.
-                    System.out.println("The maximum number of tasks has been exceeded. Max tasks: " + maxThreads);
+                    logger.write("The maximum number of tasks has been exceeded. Max tasks: " +
+                            maxThreads, ServerLogger.LOG_WARN);
                     // Throw max connection error
                     new Thread(new jNetworkInterfaceServerTask(client, this, true)).start();
                 } else {
@@ -180,6 +193,7 @@ public class jNetworkInterfaceServer implements Runnable {
                     }
                 }
             } catch (IOException ex) {
+                logger.write("Could not process the request from the client connection.", ServerLogger.LOG_ERROR);
                 throw new RuntimeException("Could not process request sent from client connection.");
             }
         }
@@ -224,7 +238,7 @@ public class jNetworkInterfaceServer implements Runnable {
      */
     public synchronized void incrementResources() {
         currentThreadCount++;
-        System.out.println("Resources Incremented: " + currentThreadCount);
+        logger.write("Resources Incremented: " + currentThreadCount, ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -232,7 +246,7 @@ public class jNetworkInterfaceServer implements Runnable {
      */
     public synchronized void decrementResources() {
         currentThreadCount--;
-        System.out.println("Resources Decremented: " + currentThreadCount);
+        logger.write("Resources Decremented: " + currentThreadCount, ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -242,7 +256,7 @@ public class jNetworkInterfaceServer implements Runnable {
         isStopped = true;
         serverStarted = null;
         requests = 0;
-        System.out.println("jNetworkInterfaceServer stopped.");
+        logger.write("jNetworkInterfaceServer stopped.", ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -250,7 +264,7 @@ public class jNetworkInterfaceServer implements Runnable {
      */
     public synchronized void pause() {
         isPaused = true;
-        System.out.println("jNetworkInterfaceServer paused.");
+        logger.write("jNetworkInterfaceServer paused.", ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -258,7 +272,7 @@ public class jNetworkInterfaceServer implements Runnable {
      */
     public synchronized void unpause() {
         isPaused = false;
-        System.out.println("jNetworkInterfaceServer Unpaused.");
+        logger.write("jNetworkInterfaceServer Unpaused.", ServerLogger.LOG_NOTICE);
     }
 
     /**
@@ -307,14 +321,16 @@ public class jNetworkInterfaceServer implements Runnable {
     private synchronized void buildSocket() {
         try {
             server = new ServerSocket(port);
-            System.out.println("jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
-                    jNetworkInterfaceServer.VERSION_MINOR + "." +
-                    jNetworkInterfaceServer.VERSION_REVISION);
-            System.out.println("======================================");
-            System.out.println("Running on port: " + port);
-            System.out.println("Maximum Threads: " + maxThreads);
-            System.out.println();
+//            System.out.println("jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+//                    jNetworkInterfaceServer.VERSION_MINOR + "." +
+//                    jNetworkInterfaceServer.VERSION_REVISION);
+//            System.out.println("======================================");
+//            System.out.println("Running on port: " + port);
+//            System.out.println("Maximum Threads: " + maxThreads);
+//            System.out.println();
+            logger.write("Server started.", ServerLogger.LOG_NOTICE);
         } catch (IOException ex) {
+            logger.write("Server socket could not be initialized.", ServerLogger.LOG_ERROR);
             throw new RuntimeException("Server socket could not be initialized.");
         }
     }

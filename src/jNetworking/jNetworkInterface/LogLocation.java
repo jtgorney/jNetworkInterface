@@ -22,22 +22,37 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.LogLocation;
-import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
+package jNetworking.jNetworkInterface;
 
 /**
- * Simple test for jNetworkInterfaceServer.
+ * Singleton like object for log location.
  */
-public class jNetworkInterfaceServerTest {
+public class LogLocation {
     /**
-     * Main function
-     * @param args Command arguments
+     * Location of file.
      */
-    public static void main(String[] args) {
-        // Set the log location
-        LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
-        jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-        // Spawn the server
-        new Thread(server).start();
+    private static String location;
+
+    /**
+     * Default constructor hidden.
+     */
+    private LogLocation() {
+        return;
+    }
+
+    /**
+     * Set the location.
+     * @param loc New location
+     */
+    public static void setLocation(String loc) {
+        location = loc;
+    }
+
+    /**
+     * Get the location.
+     * @return Log location
+     */
+    public static String getLocation() {
+        return location;
     }
 }
