@@ -132,7 +132,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
             } else if (command.equals("stats")) {
                 logger.write("Executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_NOTICE);
                 responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
-            } else if (command.equals("Version")) {
+            } else if (command.equals("version")) {
                 logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
                 responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
                         jNetworkInterfaceServer.VERSION_MINOR + "." +
