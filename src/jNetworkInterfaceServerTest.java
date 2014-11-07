@@ -35,7 +35,9 @@ public class jNetworkInterfaceServerTest {
      */
     public static void main(String[] args) {
         // Set the log location
-        LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
+        // Not setting the location of the log file will default to the root drive.
+        // Ensure this program is executed with appropriate filesystem permissions.
+        // LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
         jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
         // Spawn the server
         new Thread(server).start();
