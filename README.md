@@ -6,7 +6,7 @@ jNetworkInterface and jNetworkInterfaceServer are full open sourced (MIT License
 To get started, simply import the library and follow the Test source code included in this repository to create a client connection and a server. Commands for the server are build in the Commands package and implement the Command interface. The server does the rest.
 
 Make sure to compile your command classes.
-javac *.java jNetworking/jNetworkInterface/Commands/*.java
+javac \*.java jNetworking/jNetworkInterface/Commands/\*.java
 
 ![alt tag](http://i.imgur.com/PUqgRxK.png)
 ![alt tag](http://i.imgur.com/6DwJPGo.png)
