@@ -22,24 +22,13 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.LogLocation;
-import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
+package jNetworking.jNetworkInterface.HTTP;
 
 /**
- * Simple test for jNetworkInterfaceServer.
+ * Created by jacob on 11/10/14.
  */
-public class jNetworkInterfaceServerTest {
-    /**
-     * Main function
-     * @param args Command arguments
-     */
-    public static void main(String[] args) {
-        // Set the log location
-        // Not setting the location of the log file will default to the root drive.
-        // Ensure this program is executed with appropriate filesystem permissions.
-        LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
-        jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-        // Spawn the server
-        new Thread(server).start();
+public class HTTPGet {
+    public HTTPGet() {
+
     }
 }

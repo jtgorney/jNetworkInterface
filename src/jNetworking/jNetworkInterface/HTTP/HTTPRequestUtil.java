@@ -22,24 +22,27 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.LogLocation;
-import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
+package jNetworking.jNetworkInterface.HTTP;
 
 /**
- * Simple test for jNetworkInterfaceServer.
+ * HTTP utility class.
  */
-public class jNetworkInterfaceServerTest {
+public class HTTPRequestUtil {
     /**
-     * Main function
-     * @param args Command arguments
+     * Determine if a request is HTTP GET.
+     * @param rawReq Raw request string
+     * @return Result
      */
-    public static void main(String[] args) {
-        // Set the log location
-        // Not setting the location of the log file will default to the root drive.
-        // Ensure this program is executed with appropriate filesystem permissions.
-        LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
-        jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-        // Spawn the server
-        new Thread(server).start();
+    public static boolean isHTTPGet(String rawReq) {
+        return (rawReq.length() >= 3 && rawReq.substring(0,3).equals("GET"));
+    }
+
+    /**
+     * Determine if a request is HTTP POST
+     * @param rawReq Raw request string
+     * @return Result
+     */
+    public static boolean isHTTPPost(String rawReq) {
+        return (rawReq.length() >= 4 && rawReq.substring(0,4).equals("POST"));
     }
 }

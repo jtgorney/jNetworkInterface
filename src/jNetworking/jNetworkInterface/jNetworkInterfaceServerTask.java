@@ -24,6 +24,8 @@
 
 package jNetworking.jNetworkInterface;
 
+import jNetworking.jNetworkInterface.HTTP.HTTPRequestUtil;
+
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.Socket;
@@ -105,76 +107,53 @@ public class jNetworkInterfaceServerTask implements Runnable {
             ArrayList<String> data = new ArrayList<>();
             // Read the data
             String line;
-            boolean isCommand = false;
+            boolean isGET, isPOST, httpChecked;
+            // Set checked to false
+            httpChecked = false;
+            isGET = false;
+            isPOST = false;
+            // httpRequest holds the buffer for the request.
+            StringBuilder httpRequest = new StringBuilder();;
             while ((line = socketIn.readLine()) != null) {
-                // Break the reader loop and process the response
-                if (line.equals("END COMMAND"))
-                    break;
-                if (!isCommand) {
-                    isCommand = true;
-                    command = line.toLowerCase().trim();
-                } else
-                    data.add(line);
-            }
-            // Build the response
-            String responseData;
-            // Check for server stats, version, and name commands. These are defaults
-            if (serverRef.isPaused() && !command.equals("unpause")) {
-                logger.write("Server is paused.", ServerLogger.LOG_WARN);
-                responseData = "Error: Server is paused.";
-            } else if (isMaxThreads) {
-                // Handle max thread error
-                logger.write("Server has reached maximum capacity..", ServerLogger.LOG_WARN);
-                responseData = "Error: Server has reached maximum capacity.";
-            } else if (command.equals("")) {
-                logger.write("Server did not receive a command.", ServerLogger.LOG_WARN);
-                responseData = "Error: No command.";
-            } else if (command.equals("stats")) {
-                logger.write("Executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_NOTICE);
-                responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
-            } else if (command.equals("version")) {
-                logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
-                responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
-                        jNetworkInterfaceServer.VERSION_MINOR + "." +
-                        jNetworkInterfaceServer.VERSION_REVISION;
-            } else if (command.equals("pause")) {
-                serverRef.pause();
-                logger.write("Server paused.", ServerLogger.LOG_NOTICE);
-                responseData = "Server paused.";
-            } else if (command.equals("unpause")) {
-                serverRef.unpause();
-                logger.write("Server unpaused.", ServerLogger.LOG_NOTICE);
-                responseData = "Server Unpaused.";
-            } else {
-                try {
-                    // Create the command
-                    // Get the command
-                    Properties map = new Properties();
-                    map.load(getClass().getResourceAsStream("commands.properties"));
-                    // Load the command
-                    Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." +
-                            map.getProperty("command." + command.toLowerCase()));
-                    Constructor<?> cs = commandObj.getConstructor();
-                    Command cmd = (Command) cs.newInstance();
-                    // Execute the command
-                    logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
-                    cmd.setup(data, socket);
-                    responseData = cmd.run();
-                } catch (Exception ex) {
-                    // ex.printStackTrace();
-                    logger.write("Error executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_ERROR);
-                    responseData = RESPONSE_INVALID;
+                // Check for HTTP request
+                if (!httpChecked) {
+                    isGET = HTTPRequestUtil.isHTTPGet(line);
+                    isPOST = HTTPRequestUtil.isHTTPPost(line);
+                    // Build the buffer for the HTTP request
+                    if (isGET || isPOST)
+                        httpRequest.append(line);
+                    else
+                        // This is the first check so it must be a command
+                        command = line.toLowerCase().trim();
+                    httpChecked = true;
+                } else {
+                    if (isGET || isPOST) {
+                        // Process the HTTP request from socket
+                        // The request has been completely read.
+                        if (line.equals("\r\n")) {
+                            // HTTP 1.1 says the request must end with \r\n
+                            httpRequest.append("\r\n");
+                            break;
+                        }
+                        // Add to the buffer.
+                        httpRequest.append(line);
+                    } else {
+                        // Break the reader loop and process the response
+                        if (line.equals("END COMMAND"))
+                            break;
+                        // Append data
+                        data.add(line);
+                    }
                 }
             }
-            // Write the response
-            PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
-            socketOut.println(responseData);
-            // Close the connections
-            socketIn.close();
-            socketOut.close();
-            socket.close();
-            if (!isMaxThreads && !serverRef.isPaused())
-                serverRef.decrementResources();
+            // Check for HTTP
+            if (isGET || isPOST) {
+                // @todo process the HTTP request
+            } else
+                // Send a normal server command.
+                sendCommand(command, data);
+            // This is commented out because the sendCommand closes the
+            // socket anyways and the GC will take care of the rest.
         } catch (IOException ex) {
             // ex.printStackTrace();
             if (!isMaxThreads && !serverRef.isPaused())
@@ -182,6 +161,73 @@ public class jNetworkInterfaceServerTask implements Runnable {
             logger.write("Could not execute command.", ServerLogger.LOG_ERROR);
             throw new RuntimeException("Could not execute command.");
         }
+    }
+
+    /**
+     * Process a normal server command.
+     * @param command Command to execute
+     * @param data Data to process
+     * @throws IOException
+     */
+    private void sendCommand(String command, ArrayList<String> data) throws IOException {
+        // Build the response
+        String responseData;
+        // Check for server stats, version, and name commands. These are defaults
+        if (serverRef.isPaused() && !command.equals("unpause")) {
+            logger.write("Server is paused.", ServerLogger.LOG_WARN);
+            responseData = "Error: Server is paused.";
+        } else if (isMaxThreads) {
+            // Handle max thread error
+            logger.write("Server has reached maximum capacity..", ServerLogger.LOG_WARN);
+            responseData = "Error: Server has reached maximum capacity.";
+        } else if (command.equals("")) {
+            logger.write("Server did not receive a command.", ServerLogger.LOG_WARN);
+            responseData = "Error: No command.";
+        } else if (command.equals("stats")) {
+            logger.write("Executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_NOTICE);
+            responseData = serverRef.getStartTime().toString() + "," + serverRef.getRequests();
+        } else if (command.equals("version")) {
+            logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
+            responseData = "jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
+                    jNetworkInterfaceServer.VERSION_MINOR + "." +
+                    jNetworkInterfaceServer.VERSION_REVISION;
+        } else if (command.equals("pause")) {
+            serverRef.pause();
+            logger.write("Server paused.", ServerLogger.LOG_NOTICE);
+            responseData = "Server paused.";
+        } else if (command.equals("unpause")) {
+            serverRef.unpause();
+            logger.write("Server unpaused.", ServerLogger.LOG_NOTICE);
+            responseData = "Server Unpaused.";
+        } else {
+            try {
+                // Create the command
+                // Get the command
+                Properties map = new Properties();
+                map.load(getClass().getResourceAsStream("commands.properties"));
+                // Load the command
+                Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." +
+                        map.getProperty("command." + command.toLowerCase()));
+                Constructor<?> cs = commandObj.getConstructor();
+                Command cmd = (Command) cs.newInstance();
+                // Execute the command
+                logger.write("Executing command '" + command.toLowerCase() + "'.", ServerLogger.LOG_NOTICE);
+                cmd.setup(data, socket);
+                responseData = cmd.run();
+            } catch (Exception ex) {
+                // ex.printStackTrace();
+                logger.write("Error executing command '" + command.toLowerCase() + "'", ServerLogger.LOG_ERROR);
+                responseData = RESPONSE_INVALID;
+            }
+        }
+        // Write the response
+        PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
+        socketOut.println(responseData);
+        // Close the connections
+        socketOut.close();
+        socket.close();
+        if (!isMaxThreads && !serverRef.isPaused())
+            serverRef.decrementResources();
     }
 
     /**

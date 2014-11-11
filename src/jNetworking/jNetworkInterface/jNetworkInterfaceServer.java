@@ -59,6 +59,10 @@ public class jNetworkInterfaceServer implements Runnable {
      */
     public static final String RESPONSE_ERROR = "ERROR";
     /**
+     * Default socket timeout.
+     */
+    public static final int TIMEOUT = 30000;
+    /**
      * Server stopped flag.
      */
     private boolean isStopped;
@@ -162,6 +166,7 @@ public class jNetworkInterfaceServer implements Runnable {
             }
             try {
                 Socket client = server.accept();
+                client.setSoTimeout(TIMEOUT);
                 logger.write("Received request from client, attempting to process.", ServerLogger.LOG_NOTICE);
                 synchronized (this) {
                     requests++;
@@ -180,15 +185,12 @@ public class jNetworkInterfaceServer implements Runnable {
                     // Start the task thread if needed.
                     if (taskThread == null || !taskThread.isAlive()) {
                         // Build a new thread
-                        taskThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Loop through the queue
-                                while (!taskQueue.isEmpty()) {
-                                    new Thread(taskQueue.poll()).start();
-                                }
+                        Runnable task = () -> {
+                            while (!taskQueue.isEmpty()) {
+                                new Thread(taskQueue.poll()).start();
                             }
-                        });
+                        };
+                        taskThread = new Thread(task);
                         taskThread.start();
                     }
                 }

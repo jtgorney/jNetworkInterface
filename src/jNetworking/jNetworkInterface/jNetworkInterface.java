@@ -280,6 +280,8 @@ public class jNetworkInterface {
                 socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
             } else
                 socket = new Socket(hostname, port);
+            // Set the default timeout.
+            socket.setSoTimeout(jNetworkInterfaceServer.TIMEOUT);
             isConnected = true;
         } catch (IOException ex) {
             isConnected = false;
