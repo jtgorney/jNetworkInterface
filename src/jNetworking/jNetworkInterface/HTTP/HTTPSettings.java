@@ -22,28 +22,27 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.HTTP.HTTPSettings;
-import jNetworking.jNetworkInterface.LogLocation;
-import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
+package jNetworking.jNetworkInterface.HTTP;
 
 /**
- * Simple test for jNetworkInterfaceServer.
+ * HTTPSettings class controls the HTTP server controls.
  */
-public class jNetworkInterfaceServerTest {
+public class HTTPSettings {
+    private static String httpRoot;
+
     /**
-     * Main function
-     * @param args Command arguments
+     * Set the root of the HTTP server.
+     * @param path Root
      */
-    public static void main(String[] args) {
-        // Set the log location
-        // Not setting the location of the log file will default to the root drive.
-        // Ensure this program is executed with appropriate filesystem permissions.
-        LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
-        // For accepting HTTP commands, a root must be set.
-        HTTPSettings.setHTTPRoot("/Users/jacob/Desktop/");
-        // Spawn the server
-        jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
-        // Spawn the server
-        new Thread(server).start();
+    public static void setHTTPRoot(String path) {
+        httpRoot = path;
+    }
+
+    /**
+     * Get the root of the HTTP server.
+     * @return
+     */
+    public static String getHTTPRoot() {
+        return httpRoot;
     }
 }

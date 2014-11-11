@@ -55,10 +55,8 @@ public class jNetworkInterfaceTest {
             Scanner keyboard = new Scanner(System.in);
             System.out.print("Send command (type 'exit' to stop): ");
             String cliText = keyboard.nextLine();
-
             // Parse
             String[] cliSplit = cliText.split(" ");
-
             // Check for cancel
             if (cliSplit[0].equals("exit"))
                 break;
