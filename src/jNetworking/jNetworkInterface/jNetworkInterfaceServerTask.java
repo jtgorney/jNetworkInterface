@@ -30,6 +30,7 @@ import jNetworking.jNetworkInterface.HTTP.HTTPRequestUtil;
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
@@ -104,7 +105,8 @@ public class jNetworkInterfaceServerTask implements Runnable {
         if (!isMaxThreads && !serverRef.isPaused())
             serverRef.incrementResources();
         try {
-            BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream(),
+                    StandardCharsets.UTF_8));
             String command = "";
             ArrayList<String> data = new ArrayList<>();
             // Read the data
@@ -206,7 +208,7 @@ public class jNetworkInterfaceServerTask implements Runnable {
                 // Create the command
                 // Get the command
                 YamlReader reader = new YamlReader(
-                        new InputStreamReader(getClass().getResourceAsStream("commands.yaml")));
+                        new InputStreamReader(getClass().getResourceAsStream("commands.yaml"), StandardCharsets.UTF_8));
                 Map map = (Map)reader.read();
                 // Load the command
                 String classCommand = command.toLowerCase().trim();
@@ -225,7 +227,8 @@ public class jNetworkInterfaceServerTask implements Runnable {
             }
         }
         // Write the response
-        PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
+        PrintWriter socketOut = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(),
+                StandardCharsets.UTF_8), true);
         socketOut.println(responseData);
         // Close the connections
         socketOut.close();
