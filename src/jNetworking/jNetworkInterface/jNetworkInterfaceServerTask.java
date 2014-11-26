@@ -24,12 +24,14 @@
 
 package jNetworking.jNetworkInterface;
 
+import com.esotericsoftware.yamlbeans.YamlReader;
 import jNetworking.jNetworkInterface.HTTP.HTTPRequestUtil;
 
 import java.io.*;
 import java.lang.reflect.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -203,11 +205,13 @@ public class jNetworkInterfaceServerTask implements Runnable {
             try {
                 // Create the command
                 // Get the command
-                Properties map = new Properties();
-                map.load(getClass().getResourceAsStream("commands.properties"));
+                YamlReader reader = new YamlReader(
+                        new InputStreamReader(getClass().getResourceAsStream("commands.yaml")));
+                Map map = (Map)reader.read();
                 // Load the command
-                Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." +
-                        map.getProperty("command." + command.toLowerCase()));
+                String classCommand = command.toLowerCase().trim();
+                String className = (String)map.get(classCommand);
+                Class<?> commandObj = Class.forName("jNetworking.jNetworkInterface.Commands." + className);
                 Constructor<?> cs = commandObj.getConstructor();
                 Command cmd = (Command) cs.newInstance();
                 // Execute the command
