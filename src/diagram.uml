@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>jNetworking.jNetworkInterface</OriginalElement>
+  <nodes>
+    <node x="290.0" y="426.0">jNetworking.jNetworkInterface.Command</node>
+    <node x="-326.0" y="262.0">jNetworking.jNetworkInterface.ServerLogger</node>
+    <node x="290.0" y="549.0">jNetworking.jNetworkInterface.Commands.Test</node>
+    <node x="-327.0" y="41.0">jNetworking.jNetworkInterface.jNetworkInterfaceServerTask</node>
+    <node x="580.0" y="549.0">jNetworking.jNetworkInterface.Commands.Website</node>
+    <node x="-399.0" y="398.0">jNetworking.jNetworkInterface.jNetworkInterface</node>
+    <node x="0.0" y="549.0">jNetworking.jNetworkInterface.Commands.Ping</node>
+    <node x="149.0" y="-91.0">jNetworking.jNetworkInterface.jNetworkInterfaceServer</node>
+    <node x="3.0" y="358.0">jNetworking.jNetworkInterface.LogLocation</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="jNetworking.jNetworkInterface.Commands.Website" target="jNetworking.jNetworkInterface.Command">
+      <point x="0.0" y="-36.5" />
+      <point x="715.0" y="524.0" />
+      <point x="515.0" y="524.0" />
+      <point x="90.0" y="36.5" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.jNetworkInterfaceServerTask" target="jNetworking.jNetworkInterface.jNetworkInterfaceServer">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.Commands.Ping" target="jNetworking.jNetworkInterface.Command">
+      <point x="0.0" y="-36.5" />
+      <point x="135.0" y="524.0" />
+      <point x="335.0" y="524.0" />
+      <point x="-90.0" y="36.5" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.jNetworkInterfaceServerTask" target="jNetworking.jNetworkInterface.ServerLogger">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.Commands.Test" target="jNetworking.jNetworkInterface.Command">
+      <point x="0.0" y="-36.5" />
+      <point x="0.0" y="36.5" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.jNetworkInterfaceServer" target="jNetworking.jNetworkInterface.ServerLogger">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="jNetworking.jNetworkInterface.jNetworkInterfaceServer" target="jNetworking.jNetworkInterface.jNetworkInterfaceServerTask">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="165.0" y="305.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Methods</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
