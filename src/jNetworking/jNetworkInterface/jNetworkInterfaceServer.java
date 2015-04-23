@@ -323,13 +323,6 @@ public class jNetworkInterfaceServer implements Runnable {
     private synchronized void buildSocket() {
         try {
             server = new ServerSocket(port);
-//            System.out.println("jNetworkInterfaceServer " + jNetworkInterfaceServer.VERSION_MAJOR + "." +
-//                    jNetworkInterfaceServer.VERSION_MINOR + "." +
-//                    jNetworkInterfaceServer.VERSION_REVISION);
-//            System.out.println("======================================");
-//            System.out.println("Running on port: " + port);
-//            System.out.println("Maximum Threads: " + maxThreads);
-//            System.out.println();
             logger.write("Server started.", ServerLogger.LOG_NOTICE);
         } catch (IOException ex) {
             logger.write("Server socket could not be initialized.", ServerLogger.LOG_ERROR);

@@ -36,11 +36,11 @@ public interface Command {
      * @param input Input parameters
      * @param client Input socket
      */
-    public abstract void setup(ArrayList<String> input, Socket client);
+    void setup(ArrayList<String> input, Socket client);
 
     /**
      * Command execution. The 'Workhorse' of the command.
      * @return Result
      */
-    public abstract String run();
+    String run();
 }

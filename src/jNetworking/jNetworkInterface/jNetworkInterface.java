@@ -113,7 +113,7 @@ public class jNetworkInterface {
      */
     public boolean isOnline() {
         try {
-            URL testURL = new URL("http://" + this.TEST_ADDR);
+            URL testURL = new URL("http://" + jNetworkInterface.TEST_ADDR);
             HttpURLConnection conn = (HttpURLConnection) testURL.openConnection();
             conn.getContent();
         } catch (MalformedURLException ex) {
@@ -122,18 +122,6 @@ public class jNetworkInterface {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Check the connection status of the network connection.
-     *
-     * @return Connection status
-     */
-    public boolean isConnected() {
-        if (socket == null)
-            return false;
-        else
-            return (!socket.isClosed() && isConnected);
     }
 
     /**
@@ -152,7 +140,6 @@ public class jNetworkInterface {
                         StandardCharsets.UTF_8), true);
                 BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream(),
                         StandardCharsets.UTF_8));
-                // @todo change to accept data
                 socketOut.println(command);
                 // Print the command data
                 if (data != null)
@@ -280,7 +267,7 @@ public class jNetworkInterface {
             if (ssl) {
                 // Build an SSL connection instead of a normal socket connection
                 SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-                socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
+                socket = sslSocketFactory.createSocket(hostname, port);
             } else
                 socket = new Socket(hostname, port);
             // Set the default timeout.

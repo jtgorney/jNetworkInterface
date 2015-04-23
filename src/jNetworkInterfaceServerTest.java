@@ -22,7 +22,6 @@
  THE SOFTWARE.
  */
 
-import jNetworking.jNetworkInterface.HTTP.HTTPSettings;
 import jNetworking.jNetworkInterface.LogLocation;
 import jNetworking.jNetworkInterface.jNetworkInterfaceServer;
 
@@ -39,8 +38,6 @@ public class jNetworkInterfaceServerTest {
         // Not setting the location of the log file will default to the root drive.
         // Ensure this program is executed with appropriate filesystem permissions.
         LogLocation.setLocation("/Users/jacob/Desktop/log.txt");
-        // For accepting HTTP commands, a root must be set.
-        HTTPSettings.setHTTPRoot("/Users/jacob/Desktop/");
         // Spawn the server
         jNetworkInterfaceServer server = new jNetworkInterfaceServer(8080, 10, false);
         // Spawn the server

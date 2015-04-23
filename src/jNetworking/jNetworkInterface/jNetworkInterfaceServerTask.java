@@ -25,7 +25,6 @@
 package jNetworking.jNetworkInterface;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
-import jNetworking.jNetworkInterface.HTTP.HTTPRequestUtil;
 
 import java.io.*;
 import java.lang.reflect.*;
@@ -33,7 +32,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Class responsible for processing the commands sent to the server.
@@ -111,51 +109,21 @@ public class jNetworkInterfaceServerTask implements Runnable {
             ArrayList<String> data = new ArrayList<>();
             // Read the data
             String line;
-            boolean isGET, isPOST, httpChecked;
-            // Set checked to false
-            httpChecked = false;
-            isGET = false;
-            isPOST = false;
-            // httpRequest holds the buffer for the request.
-            StringBuilder httpRequest = new StringBuilder();;
             while ((line = socketIn.readLine()) != null) {
-                // Check for HTTP request
-                if (!httpChecked) {
-                    isGET = HTTPRequestUtil.isHTTPGet(line);
-                    isPOST = HTTPRequestUtil.isHTTPPost(line);
-                    // Build the buffer for the HTTP request
-                    if (isGET || isPOST)
-                        httpRequest.append(line);
-                    else
-                        // This is the first check so it must be a command
-                        command = line.toLowerCase().trim();
-                    httpChecked = true;
-                } else {
-                    if (isGET || isPOST) {
-                        // Process the HTTP request from socket
-                        // The request has been completely read.
-                        if (line.equals("\r\n")) {
-                            // HTTP 1.1 says the request must end with \r\n
-                            httpRequest.append("\r\n");
-                            break;
-                        }
-                        // Add to the buffer.
-                        httpRequest.append(line);
-                    } else {
-                        // Break the reader loop and process the response
-                        if (line.equals("END COMMAND"))
-                            break;
-                        // Append data
-                        data.add(line);
-                    }
+                // This is the first check so it must be a command
+                if (command.isEmpty())
+                    // Read command first
+                    command = line.toLowerCase().trim();
+                else {
+                    // Break the reader loop and process the response
+                    if (line.equals("END COMMAND"))
+                        break;
+                    // Append data
+                    data.add(line);
                 }
             }
-            // Check for HTTP
-            if (isGET || isPOST) {
-                // @todo process the HTTP request
-            } else
-                // Send a normal server command.
-                sendCommand(command, data);
+            // Send a normal server command.
+            sendCommand(command, data);
             // This is commented out because the sendCommand closes the
             // socket anyways and the GC will take care of the rest.
         } catch (IOException ex) {

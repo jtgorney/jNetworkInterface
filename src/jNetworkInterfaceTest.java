@@ -42,11 +42,6 @@ public class jNetworkInterfaceTest {
         System.out.println("*        jNetworkInterface Test        *");
         System.out.println("****************************************");
         System.out.println();
-        // Check online status
-        if (client.isOnline())
-            System.out.println("Client is online.");
-        else
-            System.out.println("Client is offline.");
         // Check the connection quality
         client.pollQuality();
         System.out.println("Connection Quality Rating (To Server): " + client.getConnectionQuality());
